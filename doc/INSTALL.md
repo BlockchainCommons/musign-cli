@@ -1,4 +1,4 @@
-## Install
+## Abstract
 
 This document describes how to build and run `musig-cli`.
 In addition, it shows how to run tests.

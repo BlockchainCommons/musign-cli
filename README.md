@@ -1,18 +1,18 @@
-# Blockchain Commons `$projectname`
+# Blockchain Commons `musig-cli`
 
-### _by $major-authors_
+### _by [Gorazd Kovacic](https://www.github.com/gorazdko) and [Christopher Allen](https://www.github.com/ChristopherA)_
 
-**`$ProjectDescription`** is …
+A CLI tool for signing and verifying messages with `ECDSA` and `Schnorr` using [libsecp256k1](https://github.com/rust-bitcoin/rust-secp256k1).
 
 ## Additional Information
 
-The following files contain…
+* [Building and Running](doc/INSTALL.md)
+* [Manual](doc/MANUAL.md)
 
-* `$ListOfEssentialDocs`
 
 ## Status - Late Alpha
 
-` $projectname`  is currently under active development and in the late alpha testing phase. It should not be used for production tasks until it has had further testing and auditing.
+` musig-cli`  is currently under active development and in the late alpha testing phase. It should not be used for production tasks until it has had further testing and auditing.
 
 ### Roadmap
 
@@ -36,13 +36,12 @@ This table below also establishes provenance (repository of origin, permalink, a
 
 ### Dependencies
 
-To build  `$projectname` you'll need to use the following tools:
+To build  `musig-cli` you'll need to use the following tools: /
 
-- autotools - Gnu Build System from Free Software Foundation ([intro](https://www.gnu.org/software/automake/manual/html_node/Autotools-Introduction.html)).
 
 ### Libraries
 
-The following external libraries are used with `$projectname`:
+The following external libraries are used with `musig-cli`:
 
 - [community/repo-name](https://github.com/community/repo-name) — What the library does (use OR fork [version] OR include [version]).
 
@@ -50,7 +49,7 @@ Libraries may be marked as `use` (the current version of the library is used), `
 
 ### Derived from ...
 
-This  `$projectname` project is either derived from or was inspired by:
+This  `musig-cli` project is either derived from or was inspired by:
 
 - [community/repo-name/](https://github.com/community/repo-name) — Repo that does what, by [developer](https://github.com/developer)  or from  [community](https://community.com).
 
@@ -58,13 +57,13 @@ This  `$projectname` project is either derived from or was inspired by:
 
 ### Adapted by ...
 
-These are adaptations, conversions, and wrappers that make `$projectname` available for other languages:
+These are adaptations, conversions, and wrappers that make `musig-cli` available for other languages:
 
 - [community/repo-name/](https://github.com/community/repo-name) — Repo that does what, by [developer](https://github.com/developer)  or from  [community](https://community.com)(language).
 
 ### Used by ...
 
-These are other projects that directly use `$projectname`:
+These are other projects that directly use `musig-cli`:
 
 - [community/repo-name/](https://github.com/community/repo-name) — Repo that does what, by [developer](https://github.com/developer)  or from  [community](https://community.com)(use OR fork [version] OR include [version]).
 
@@ -72,19 +71,19 @@ Libraries may be marked as `use` (the current version of our repo is used), `for
 
 ### Used with ...
 
-These are other projects that work with or leverage `$projectname`:
+These are other projects that work with or leverage `musig-cli`:
 
 - [community/repo-name/](https://github.com/community/repo-name) — Repo that does what, by [developer](https://github.com/developer)  or from  [community](https://community.com).
 
 ## Financial Support
 
-`$projectname` is a project of [Blockchain Commons](https://www.blockchaincommons.com/). We are proudly a "not-for-profit" social benefit corporation committed to open source & open development. Our work is funded entirely by donations and collaborative partnerships with people like you. Every contribution will be spent on building open tools, technologies, and techniques that sustain and advance blockchain and internet security infrastructure and promote an open web.
+`musig-cli` is a project of [Blockchain Commons](https://www.blockchaincommons.com/). We are proudly a "not-for-profit" social benefit corporation committed to open source & open development. Our work is funded entirely by donations and collaborative partnerships with people like you. Every contribution will be spent on building open tools, technologies, and techniques that sustain and advance blockchain and internet security infrastructure and promote an open web.
 
-To financially support further development of `$projectname` and other projects, please consider becoming a Patron of Blockchain Commons through ongoing monthly patronage as a [GitHub Sponsor](https://github.com/sponsors/BlockchainCommons). You can also support Blockchain Commons with bitcoins at our [BTCPay Server](https://btcpay.blockchaincommons.com/).
+To financially support further development of `musig-cli` and other projects, please consider becoming a Patron of Blockchain Commons through ongoing monthly patronage as a [GitHub Sponsor](https://github.com/sponsors/BlockchainCommons). You can also support Blockchain Commons with bitcoins at our [BTCPay Server](https://btcpay.blockchaincommons.com/).
 
 ### Project Sponsors
 
-Thanks to our project sponsors for their support of `$projectname`:
+Thanks to our project sponsors for their support of `musig-cli`:
 
 $sponsor-logo-with-link
 
