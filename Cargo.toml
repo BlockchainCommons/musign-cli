@@ -1,0 +1,17 @@
+[package]
+name = "musig-cli"
+version = "0.1.0"
+authors = ["gorazdko <gorazdko@gmail.com>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+clap = "3.0.0-beta.2"
+secp256k1 = {version = "0.20.1", features = ["bitcoin_hashes", "rand-std" ]}
+hex = "0.4.2"
+
+[dev-dependencies]
+assert_cmd = "0.10"
+predicates = "1"
+tempfile = "3"
