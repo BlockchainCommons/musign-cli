@@ -56,6 +56,17 @@ fn sign_verify_ecdsa() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains("True"));
 
+    // Change the message to fail the signature verification
+    let mut cmd = Command::cargo_bin("musig-cli")?;
+    cmd.arg("verify")
+        .arg(sig)
+        .arg(msg_data.to_owned() + " ")
+        .arg(pubkey.to_string());
+
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("False"));
+
     Ok(())
 }
 
@@ -105,6 +116,19 @@ fn sign_verify_schnorr() -> Result<(), Box<dyn std::error::Error>> {
     cmd.assert()
         .success()
         .stdout(predicate::str::contains("True"));
+
+    // change the message to fail the signature verification
+    let mut cmd = Command::cargo_bin("musig-cli")?;
+    cmd.arg("verify")
+        .arg("-t")
+        .arg("schnorr")
+        .arg(sig)
+        .arg(msg_data.to_owned() + " ")
+        .arg(pubkey.to_string());
+
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("False"));
 
     Ok(())
 }
