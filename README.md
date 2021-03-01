@@ -10,9 +10,9 @@ A CLI tool for signing and verifying messages with `ECDSA` and `Schnorr` using [
 * [Manual](doc/MANUAL.md)
 
 
-## Status - Late Alpha
+## Status - Research
 
-` musig-cli`  is currently under active development and in the late alpha testing phase. It should not be used for production tasks until it has had further testing and auditing.
+` musig-cli`  is currently under active development but is only in the research phase. It should not be used for production work — it can and WILL change. See [Release Path](https://github.com/BlockchainCommons/Community/blob/master/release-path.md).
 
 ### Roadmap
 
