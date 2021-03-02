@@ -1,4 +1,4 @@
-# Blockchain Commons `musig-cli`
+# Blockchain Commons `musign-cli`
 
 ### _by [Gorazd Kovacic](https://www.github.com/gorazdko) and [Christopher Allen](https://www.github.com/ChristopherA)_
 
@@ -12,7 +12,7 @@ A CLI tool for signing and verifying messages with `ECDSA` and `Schnorr` using [
 
 ## Status - Research
 
-` musig-cli`  is currently under active development but is only in the research phase. It should not be used for production work — it can and WILL change. See [Release Path](https://github.com/BlockchainCommons/Community/blob/master/release-path.md).
+` musign-cli`  is currently under active development but is only in the research phase. It should not be used for production work — it can and WILL change. See [Release Path](https://github.com/BlockchainCommons/Community/blob/master/release-path.md).
 
 ### Roadmap
 
@@ -36,12 +36,12 @@ This table below also establishes provenance (repository of origin, permalink, a
 
 ### Dependencies
 
-To build  `musig-cli` you'll need to use the following tools: /
+To build  `musign-cli` you'll need to use the following tools: /
 
 
 ### Libraries
 
-The following external libraries are used with `musig-cli`:
+The following external libraries are used with `musign-cli`:
 
 - [community/repo-name](https://github.com/community/repo-name) — What the library does (use OR fork [version] OR include [version]).
 
@@ -49,7 +49,7 @@ Libraries may be marked as `use` (the current version of the library is used), `
 
 ### Derived from ...
 
-This  `musig-cli` project is either derived from or was inspired by:
+This  `musign-cli` project is either derived from or was inspired by:
 
 - [community/repo-name/](https://github.com/community/repo-name) — Repo that does what, by [developer](https://github.com/developer)  or from  [community](https://community.com).
 
@@ -57,13 +57,13 @@ This  `musig-cli` project is either derived from or was inspired by:
 
 ### Adapted by ...
 
-These are adaptations, conversions, and wrappers that make `musig-cli` available for other languages:
+These are adaptations, conversions, and wrappers that make `musign-cli` available for other languages:
 
 - [community/repo-name/](https://github.com/community/repo-name) — Repo that does what, by [developer](https://github.com/developer)  or from  [community](https://community.com)(language).
 
 ### Used by ...
 
-These are other projects that directly use `musig-cli`:
+These are other projects that directly use `musign-cli`:
 
 - [community/repo-name/](https://github.com/community/repo-name) — Repo that does what, by [developer](https://github.com/developer)  or from  [community](https://community.com)(use OR fork [version] OR include [version]).
 
@@ -71,19 +71,19 @@ Libraries may be marked as `use` (the current version of our repo is used), `for
 
 ### Used with ...
 
-These are other projects that work with or leverage `musig-cli`:
+These are other projects that work with or leverage `musign-cli`:
 
 - [community/repo-name/](https://github.com/community/repo-name) — Repo that does what, by [developer](https://github.com/developer)  or from  [community](https://community.com).
 
 ## Financial Support
 
-`musig-cli` is a project of [Blockchain Commons](https://www.blockchaincommons.com/). We are proudly a "not-for-profit" social benefit corporation committed to open source & open development. Our work is funded entirely by donations and collaborative partnerships with people like you. Every contribution will be spent on building open tools, technologies, and techniques that sustain and advance blockchain and internet security infrastructure and promote an open web.
+`musign-cli` is a project of [Blockchain Commons](https://www.blockchaincommons.com/). We are proudly a "not-for-profit" social benefit corporation committed to open source & open development. Our work is funded entirely by donations and collaborative partnerships with people like you. Every contribution will be spent on building open tools, technologies, and techniques that sustain and advance blockchain and internet security infrastructure and promote an open web.
 
-To financially support further development of `musig-cli` and other projects, please consider becoming a Patron of Blockchain Commons through ongoing monthly patronage as a [GitHub Sponsor](https://github.com/sponsors/BlockchainCommons). You can also support Blockchain Commons with bitcoins at our [BTCPay Server](https://btcpay.blockchaincommons.com/).
+To financially support further development of `musign-cli` and other projects, please consider becoming a Patron of Blockchain Commons through ongoing monthly patronage as a [GitHub Sponsor](https://github.com/sponsors/BlockchainCommons). You can also support Blockchain Commons with bitcoins at our [BTCPay Server](https://btcpay.blockchaincommons.com/).
 
 ### Project Sponsors
 
-Thanks to our project sponsors for their support of `musig-cli`:
+Thanks to our project sponsors for their support of `musign-cli`:
 
 $sponsor-logo-with-link
 
