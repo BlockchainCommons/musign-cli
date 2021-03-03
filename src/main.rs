@@ -113,7 +113,7 @@ pub struct CmdVerify {
 }
 
 #[derive(Clap, Debug)]
-#[clap(name = "musign")]
+#[clap(name = "musign-cli")]
 /// Generate secp256k1 keys, sign and verify messages with ECDSA and Schnorr
 enum Opt {
     /// Generate a public key from a secret (private key/seed/secret key)
