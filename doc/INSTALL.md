@@ -1,6 +1,6 @@
 ## Abstract
 
-This document describes how to build and run `musig-cli`.
+This document describes how to build and run `musign`.
 In addition, it shows how to run tests.
 
 ## Install Toolchain
@@ -9,22 +9,22 @@ First, make sure you have [Rust and Cargo](https://doc.rust-lang.org/cargo/getti
 
 ## Build and Run
 
-Building is easy. `cd` into `musig-cli` directory and run 
+Building is easy. `cd` into `musign` directory and run 
 
 ```bash
 $ cargo build
 ```
 
-The executable is `target/debug/musig-cli`. So `cd` into `target/debug/` and run 
+The executable is `target/debug/musign`. So `cd` into `target/debug/` and run 
 ```bash
-$ musig-cli -h
+$ musign -h
 
 
-musig-cli 
+musign 
 Generate secp256k1 keys, sign and verify messages with ECDSA and Schnorr
 
 USAGE:
-    musig-cli <SUBCOMMAND>
+    musign <SUBCOMMAND>
 
 FLAGS:
     -h, --help       Prints help information
