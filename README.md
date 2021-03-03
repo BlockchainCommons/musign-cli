@@ -4,11 +4,6 @@
 
 A CLI tool for signing and verifying messages with `ECDSA` and `Schnorr` using [libsecp256k1](https://github.com/rust-bitcoin/rust-secp256k1).
 
-## Additional Information
-
-* [Building and Running](doc/INSTALL.md)
-* [Manual](doc/MANUAL.md)
-
 
 ## Status - Research
 
@@ -16,43 +11,34 @@ A CLI tool for signing and verifying messages with `ECDSA` and `Schnorr` using [
 
 ### Roadmap
 
-## Prerequisites
+* support different input/output formats (e.g. CBOR/URs for signature)
+* legacy Bitcoin signing
+* multisignatures (traditional and musig2)
+* BIP322 support
 
-## Insllation Instructions
+## Installation Instructions
+
+* [Build and Run](doc/INSTALL.md)
 
 ## Usage Instructions
+
+* [Manual](doc/MANUAL.md)
 
 ## Origin, Authors, Copyright & Licenses
 
 Unless otherwise noted (either in this [/README.md](./README.md) or in the file's header comments) the contents of this repository are Copyright © 2020 by Blockchain Commons, LLC, and are [licensed](./LICENSE) under the [spdx:BSD-2-Clause Plus Patent License](https://spdx.org/licenses/BSD-2-Clause-Patent.html).
 
-In most cases, the authors, copyright, and license for each file reside in header comments in the source code. When it does not, we have attempted to attribute it accurately in the table below.
-
-This table below also establishes provenance (repository of origin, permalink, and commit id) for files included from repositories that are outside of this repo. Contributors to these files are listed in the commit history for each repository, first with changes found in the commit history of this repo, then in changes in the commit history of their repo of their origin.
-
-| File      | From                                                         | Commit                                                       | Authors & Copyright (c)                                | License                                                     |
-| --------- | ------------------------------------------------------------ | ------------------------------------------------------------ | ------------------------------------------------------ | ----------------------------------------------------------- |
-| exception-to-the-rule.c or exception-folder | [https://github.com/community/repo-name/PERMALINK](https://github.com/community/repo-name/PERMALINK) | [https://github.com/community/repo-name/commit/COMMITHASH]() | 2020 Exception Author  | [MIT](https://spdx.org/licenses/MIT)                        |
-
-### Dependencies
-
-To build  `musign-cli` you'll need to use the following tools: /
-
-
 ### Libraries
 
-The following external libraries are used with `musign-cli`:
-
-- [community/repo-name](https://github.com/community/repo-name) — What the library does (use OR fork [version] OR include [version]).
-
-Libraries may be marked as `use` (the current version of the library is used), `fork` (a specific version has been forked to the BCC repos for usage), or `include` (files from a specific version have been included).
+This project uses libraries listed [here](Cargo.toml).
 
 ### Derived from ...
 
 This  `musign-cli` project is either derived from or was inspired by:
 
-- [community/repo-name/](https://github.com/community/repo-name) — Repo that does what, by [developer](https://github.com/developer)  or from  [community](https://community.com).
+- [libsecp256k1](https://github.com/community/repo-name) — Optimized C library for EC operations on curve secp256k1  or from  [Bitcoin Core Community](https://community.com).
 
+<!--
 ## Subsequent Usage
 
 ### Adapted by ...
@@ -74,6 +60,8 @@ Libraries may be marked as `use` (the current version of our repo is used), `for
 These are other projects that work with or leverage `musign-cli`:
 
 - [community/repo-name/](https://github.com/community/repo-name) — Repo that does what, by [developer](https://github.com/developer)  or from  [community](https://community.com).
+
+-->
 
 ## Financial Support
 
@@ -116,6 +104,7 @@ The following people directly contributed to this repository. You can add your n
 | Name              | Role                | Github                                            | Email                                 | GPG Fingerprint                                    |
 | ----------------- | ------------------- | ------------------------------------------------- | ------------------------------------- | -------------------------------------------------- |
 | Christopher Allen | Principal Architect | [@ChristopherA](https://github.com/ChristopherA) | \<ChristopherA@LifeWithAlacrity.com\> | FDFE 14A5 4ECB 30FC 5D22  74EF F8D3 6C91 3574 05ED |
+| Gorazd Kovacic     | Developer  | [@gorazdko](https://github.com/gorazdko)  | \<gorazdko@gmail.com\>  | 41F0 EA16 99A7 4C1E 2FA4 1B53 8CF9 6BC3 FF9D BBCE  |
 
 ## Responsible Disclosure
 
