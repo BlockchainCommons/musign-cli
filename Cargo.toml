@@ -14,6 +14,10 @@ path="src/main.rs"
 clap = "3.0.0-beta.2"
 secp256k1 = {version = "0.20.1", features = ["bitcoin_hashes", "rand-std" ]}
 hex = "0.4.2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = {version="1.0", features = ["preserve_order"]}
+serde_cbor = "0.11.1"
+bitcoin = {version="0.26.0", features = ["secp-recovery", "base64"]}
 
 [dev-dependencies]
 assert_cmd = "0.10"

@@ -2,9 +2,11 @@ use assert_cmd::prelude::*; // Add methods on commands
 use predicates::prelude::*; // Used for writing assertions
 use std::process::Command;
 
+const BIN: &str = "musign";
+
 #[test]
 fn help_subcommand() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("musig-cli")?;
+    let mut cmd = Command::cargo_bin(BIN)?;
 
     cmd.arg("sign").arg("-h");
 
@@ -17,7 +19,7 @@ fn help_subcommand() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn generate_keypair_ecdsa() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("musig-cli")?;
+    let mut cmd = Command::cargo_bin(BIN)?;
 
     // Generate ECDSA keypair
     let seed = "7694c743a0159ebfb79a65aae8970fcc5be5e9db8efa1ebf70218ae00bb1f29b";
@@ -35,7 +37,7 @@ fn generate_keypair_ecdsa() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn sign_verify_ecdsa() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("musig-cli")?;
+    let mut cmd = Command::cargo_bin(BIN)?;
 
     let privkey = "e6dd32f8761625f105c39a39f19370b3521d845a12456d60ce44debd0a362641";
     let msg_data = "Hello world!";
@@ -46,33 +48,35 @@ fn sign_verify_ecdsa() -> Result<(), Box<dyn std::error::Error>> {
 
     cmd.assert().success().stdout(predicate::str::contains(sig));
 
-    let mut cmd = Command::cargo_bin("musig-cli")?;
+    let mut cmd = Command::cargo_bin(BIN)?;
     cmd.arg("verify")
         .arg(sig)
         .arg(msg_data)
+        .arg("-p")
         .arg(pubkey.to_string());
 
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("True"));
+        .stdout(predicate::str::contains("true"));
 
     // Change the message to fail the signature verification
-    let mut cmd = Command::cargo_bin("musig-cli")?;
+    let mut cmd = Command::cargo_bin(BIN)?;
     cmd.arg("verify")
         .arg(sig)
         .arg(msg_data.to_owned() + " ")
+        .arg("-p")
         .arg(pubkey.to_string());
 
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("False"));
+        .stdout(predicate::str::contains("false"));
 
     Ok(())
 }
 
 #[test]
 fn generate_keypair_schnorr() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("musig-cli")?;
+    let mut cmd = Command::cargo_bin(BIN)?;
 
     let seed = "7694c743a0159ebfb79a65aae8970fcc5be5e9db8efa1ebf70218ae00bb1f29b";
     //let privkey = "7694c743a0159ebfb79a65aae8970fcc5be5e9db8efa1ebf70218ae00bb1f29b";
@@ -89,7 +93,7 @@ fn generate_keypair_schnorr() -> Result<(), Box<dyn std::error::Error>> {
 
 #[test]
 fn sign_verify_schnorr() -> Result<(), Box<dyn std::error::Error>> {
-    let mut cmd = Command::cargo_bin("musig-cli")?;
+    let mut cmd = Command::cargo_bin(BIN)?;
 
     let privkey = "e6dd32f8761625f105c39a39f19370b3521d845a12456d60ce44debd0a362641";
     let pubkey = "c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1";
@@ -105,30 +109,92 @@ fn sign_verify_schnorr() -> Result<(), Box<dyn std::error::Error>> {
 
     cmd.assert().success().stdout(predicate::str::contains(sig));
 
-    let mut cmd = Command::cargo_bin("musig-cli")?;
+    let mut cmd = Command::cargo_bin(BIN)?;
     cmd.arg("verify")
         .arg("-t")
         .arg("schnorr")
         .arg(sig)
         .arg(msg_data)
+        .arg("-p")
         .arg(pubkey.to_string());
 
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("True"));
+        .stdout(predicate::str::contains("true"));
 
     // change the message to fail the signature verification
-    let mut cmd = Command::cargo_bin("musig-cli")?;
+    let mut cmd = Command::cargo_bin(BIN)?;
     cmd.arg("verify")
         .arg("-t")
         .arg("schnorr")
         .arg(sig)
         .arg(msg_data.to_owned() + " ")
+        .arg("-p")
         .arg(pubkey.to_string());
 
     cmd.assert()
         .success()
-        .stdout(predicate::str::contains("False"));
+        .stdout(predicate::str::contains("false"));
+
+    Ok(())
+}
+
+#[test]
+fn btc_sign_verify_btc_legacy() -> Result<(), Box<dyn std::error::Error>> {
+    let mut cmd = Command::cargo_bin(BIN)?;
+
+    let msg = "Hello world!";
+
+    let seed = "7694c743a0159ebfb79a65aae8970fcc5be5e9db8efa1ebf70218ae00bb1f29b";
+    //let pubkey = "dc5a4faf89ad7187933042bcc0fd028b3296f82e7a0f17eecceb4f787ae33f59";
+
+    let address = "12dR2srvCmffup7yBu5fdb3qkhFudTBnvZ"; // legacy
+
+    let sig_expected =
+        "IJIhzsY2hAFo613hTg9Gz4qc3ffWKVz3A+Wux8lwYSj5Vm1Mxqn5i7VTdhSuysrNAexNcSMBlkHyqOym77IiC/0=";
+
+    //cmd.arg(BIN).arg(seed).arg(msg);
+
+    cmd.arg("sign")
+        .arg("-t")
+        .arg("btc-legacy")
+        .arg("-s")
+        .arg(seed)
+        .arg(msg);
+
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains(sig_expected));
+
+    let mut cmd = Command::cargo_bin(BIN)?;
+
+    cmd.arg("verify")
+        .arg(sig_expected)
+        .arg(msg)
+        .arg("-t")
+        .arg("btc-legacy")
+        .arg("-a")
+        .arg(address);
+
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("true"));
+
+    /*
+        // negative test case: wrong address
+        let address = "1PYdSSwsXgJe1MGMzkeXCdshxjMfDP64wi";
+        let mut cmd = Command::cargo_bin(BIN)?;
+        cmd.arg("verify")
+            .arg("-t")
+            .arg("btc-legacy")
+            .arg(sig_expected)
+            .arg(msg)
+            .arg(address);
+
+        cmd.assert()
+            .success()
+            .stdout(predicate::str::contains("false"));
+    */
 
     Ok(())
 }
