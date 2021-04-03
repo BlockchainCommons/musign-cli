@@ -137,18 +137,18 @@ fn verify(signature: String, msg: String, pubkey: String) -> bool {
     }
 }
 
-#[derive(Debug, Clap)]
-#[clap(group = ArgGroup::new("seck").required(true))]
+#[derive(Debug, Clap, Serialize, Deserialize)]
+#[clap()]
 pub struct CmdMultisigSetup {
+    /// Signature type
+    #[clap(arg_enum, default_value = "ecdsa", short = 't')]
+    sig_type: SigType,
     /// Threshold
     #[clap(required = true)]
     threshold: u8,
     /// List of public keys to participate in a multisig
-    #[clap(required = true)]
+    #[clap(short, required = true)]
     pubkeys: Vec<String>,
-    /// Signature type
-    #[clap(arg_enum, default_value = "ecdsa", short = 't')]
-    sig_type: SigType,
 }
 
 #[derive(Debug, Clap)]
@@ -368,7 +368,9 @@ fn main() {
 
         Opt::MultisigSetup(cmd) => {
             match cmd.sig_type {
-                SigType::ECDSA => {}
+                SigType::ECDSA => {
+                    println!("{}", serde_json::to_string(&cmd).unwrap());
+                }
                 SigType::Schnorr => {}
                 SigType::BtcLegacy => {}
             };
