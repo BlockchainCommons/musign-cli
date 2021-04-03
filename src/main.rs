@@ -14,25 +14,31 @@ use bitcoin::util::address::Address;
 use bitcoin::util::key::PublicKey as Public_key;
 use bitcoin::util::misc::{signed_msg_hash, MessageSignature};
 
+#[derive(Serialize, Deserialize, Debug, PartialEq)]
+enum OneOrMany<T> {
+    One(T),
+    Many(Vec<T>),
+}
+
 #[derive(Serialize, Deserialize, Debug, Clap, PartialEq)]
 enum SigType {
     ECDSA,
     Schnorr,
     /// mainnet
     BtcLegacy,
-    Schnorr_multisig, // traditional
+    SchnorrMultisig, // traditional
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Sig {
     sig_type: SigType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    signature: Option<Vec<String>>,
+    signature: Option<OneOrMany<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     sig: Option<Vec<u8>>, // TODO
     message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pubkey: Option<Vec<String>>,
+    pubkey: Option<OneOrMany<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     address: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
@@ -229,7 +235,7 @@ fn main() {
                     });
                     println!("{}", ret.to_string());
                 }
-                SigType::Schnorr_multisig => {}
+                SigType::SchnorrMultisig => {}
             };
         }
         Opt::Sign(cmd) => {
@@ -246,10 +252,10 @@ fn main() {
 
                     let mut sig = Sig {
                         sig_type: cmd.sig_type,
-                        signature: Some(vec![sig.to_string()]),
+                        signature: Some(OneOrMany::One(sig.to_string())),
                         sig: Some(sig.serialize_compact().to_vec()),
                         message: cmd.msg,
-                        pubkey: Some(vec![pubkey.to_string()]),
+                        pubkey: Some(OneOrMany::One(pubkey.to_string())),
                         address: None,
                         quorum: None,
                     };
@@ -272,10 +278,10 @@ fn main() {
 
                     let mut sig = Sig {
                         sig_type: cmd.sig_type,
-                        signature: Some(vec![sig.to_string()]),
+                        signature: Some(OneOrMany::One(sig.to_string())),
                         sig: Some(hex::decode(sig.to_string()).unwrap()), // TODO
                         message: cmd.msg,
-                        pubkey: Some(vec![pubkey.to_string()]),
+                        pubkey: Some(OneOrMany::One(pubkey.to_string())),
                         address: None,
                         quorum: None,
                     };
@@ -295,7 +301,7 @@ fn main() {
                     let (sig, addr) = signmessage(seckey, cmd.msg.clone());
                     Sig {
                         sig_type: cmd.sig_type,
-                        signature: Some(vec![sig]),
+                        signature: Some(OneOrMany::One(sig)),
                         sig: None,
                         message: cmd.msg,
                         pubkey: None,
@@ -303,15 +309,18 @@ fn main() {
                         quorum: None,
                     }
                 }
-                SigType::Schnorr_multisig => Sig {
-                    sig_type: cmd.sig_type,
-                    signature: None,
-                    sig: None,
-                    message: cmd.msg,
-                    pubkey: None,
-                    address: None,
-                    quorum: None,
-                },
+                SigType::SchnorrMultisig => {
+                    let _t = 3;
+                    Sig {
+                        sig_type: cmd.sig_type,
+                        signature: None,
+                        sig: None,
+                        message: cmd.msg,
+                        pubkey: None,
+                        address: None,
+                        quorum: None,
+                    }
+                }
             };
 
             if cmd.format == "json" {
@@ -337,7 +346,7 @@ fn main() {
                     let ret = verifymessage(cmd.signature, cmd.address.unwrap(), cmd.message);
                     println!("{}", ret);
                 }
-                SigType::Schnorr_multisig => {}
+                SigType::SchnorrMultisig => {}
             };
         }
     };
