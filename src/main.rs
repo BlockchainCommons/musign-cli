@@ -20,20 +20,23 @@ enum SigType {
     Schnorr,
     /// mainnet
     BtcLegacy,
+    Schnorr_multisig, // traditional
 }
 
 #[derive(Serialize, Deserialize, Debug)]
 struct Sig {
     sig_type: SigType,
     #[serde(skip_serializing_if = "Option::is_none")]
-    signature: Option<String>,
+    signature: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
-    sig: Option<Vec<u8>>,
+    sig: Option<Vec<u8>>, // TODO
     message: String,
     #[serde(skip_serializing_if = "Option::is_none")]
-    pubkey: Option<String>,
+    pubkey: Option<Vec<String>>,
     #[serde(skip_serializing_if = "Option::is_none")]
     address: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    quorum: Option<[u16; 2]>, // [2,3] -> 2 out of 3
 }
 
 fn signmessage(seckey: SecretKey, message: String) -> (String, String) {
@@ -226,6 +229,7 @@ fn main() {
                     });
                     println!("{}", ret.to_string());
                 }
+                SigType::Schnorr_multisig => {}
             };
         }
         Opt::Sign(cmd) => {
@@ -242,11 +246,12 @@ fn main() {
 
                     let mut sig = Sig {
                         sig_type: cmd.sig_type,
-                        signature: Some(sig.to_string()),
+                        signature: Some(vec![sig.to_string()]),
                         sig: Some(sig.serialize_compact().to_vec()),
                         message: cmd.msg,
-                        pubkey: Some(pubkey.to_string()),
+                        pubkey: Some(vec![pubkey.to_string()]),
                         address: None,
+                        quorum: None,
                     };
 
                     if cmd.format == "cbor" {
@@ -267,11 +272,12 @@ fn main() {
 
                     let mut sig = Sig {
                         sig_type: cmd.sig_type,
-                        signature: Some(sig.to_string()),
+                        signature: Some(vec![sig.to_string()]),
                         sig: Some(hex::decode(sig.to_string()).unwrap()), // TODO
                         message: cmd.msg,
-                        pubkey: Some(pubkey.to_string()),
+                        pubkey: Some(vec![pubkey.to_string()]),
                         address: None,
+                        quorum: None,
                     };
 
                     if cmd.format == "cbor" {
@@ -289,13 +295,23 @@ fn main() {
                     let (sig, addr) = signmessage(seckey, cmd.msg.clone());
                     Sig {
                         sig_type: cmd.sig_type,
-                        signature: Some(sig),
+                        signature: Some(vec![sig]),
                         sig: None,
                         message: cmd.msg,
                         pubkey: None,
                         address: Some(addr),
+                        quorum: None,
                     }
                 }
+                SigType::Schnorr_multisig => Sig {
+                    sig_type: cmd.sig_type,
+                    signature: None,
+                    sig: None,
+                    message: cmd.msg,
+                    pubkey: None,
+                    address: None,
+                    quorum: None,
+                },
             };
 
             if cmd.format == "json" {
@@ -321,6 +337,7 @@ fn main() {
                     let ret = verifymessage(cmd.signature, cmd.address.unwrap(), cmd.message);
                     println!("{}", ret);
                 }
+                SigType::Schnorr_multisig => {}
             };
         }
     };
