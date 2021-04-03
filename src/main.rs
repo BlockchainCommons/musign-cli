@@ -26,7 +26,6 @@ enum SigType {
     Schnorr,
     /// mainnet
     BtcLegacy,
-    SchnorrMultisig, // traditional
 }
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -140,6 +139,34 @@ fn verify(signature: String, msg: String, pubkey: String) -> bool {
 
 #[derive(Debug, Clap)]
 #[clap(group = ArgGroup::new("seck").required(true))]
+pub struct CmdMultisigSetup {
+    /// Threshold
+    #[clap(required = true)]
+    threshold: u8,
+    /// List of public keys to participate in a multisig
+    #[clap(required = true)]
+    pubkeys: Vec<String>,
+    /// Signature type
+    #[clap(arg_enum, default_value = "ecdsa", short = 't')]
+    sig_type: SigType,
+}
+
+#[derive(Debug, Clap)]
+#[clap(group = ArgGroup::new("seck").required(true))]
+pub struct CmdMultisigConstruct {
+    /// Threshold
+    #[clap(required = true)]
+    threshold: u8,
+    /// List of public keys to participate in a multisig
+    #[clap(required = true)]
+    pubkeys: Vec<String>,
+    /// Signature type
+    #[clap(arg_enum, default_value = "ecdsa", short = 't')]
+    sig_type: SigType,
+}
+
+#[derive(Debug, Clap)]
+#[clap(group = ArgGroup::new("seck").required(true))]
 pub struct CmdSign {
     /// Path to private key (Not implemented)
     #[clap(parse(from_os_str), value_hint = ValueHint::AnyPath, short = 'f', group="seck")]
@@ -197,6 +224,9 @@ enum Opt {
 
     /// Verify a signature for a given message. True is returned for a valid signature otherwise False.
     Verify(CmdVerify),
+
+    /// Set up a multisig
+    MultisigSetup(CmdMultisigSetup),
 }
 
 fn main() {
@@ -235,7 +265,6 @@ fn main() {
                     });
                     println!("{}", ret.to_string());
                 }
-                SigType::SchnorrMultisig => {}
             };
         }
         Opt::Sign(cmd) => {
@@ -309,18 +338,6 @@ fn main() {
                         quorum: None,
                     }
                 }
-                SigType::SchnorrMultisig => {
-                    let _t = 3;
-                    Sig {
-                        sig_type: cmd.sig_type,
-                        signature: None,
-                        sig: None,
-                        message: cmd.msg,
-                        pubkey: None,
-                        address: None,
-                        quorum: None,
-                    }
-                }
             };
 
             if cmd.format == "json" {
@@ -346,7 +363,14 @@ fn main() {
                     let ret = verifymessage(cmd.signature, cmd.address.unwrap(), cmd.message);
                     println!("{}", ret);
                 }
-                SigType::SchnorrMultisig => {}
+            };
+        }
+
+        Opt::MultisigSetup(cmd) => {
+            match cmd.sig_type {
+                SigType::ECDSA => {}
+                SigType::Schnorr => {}
+                SigType::BtcLegacy => {}
             };
         }
     };
