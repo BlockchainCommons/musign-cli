@@ -180,21 +180,20 @@ fn btc_sign_verify_btc_legacy() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains("true"));
 
-    /*
-        // negative test case: wrong address
-        let address = "1PYdSSwsXgJe1MGMzkeXCdshxjMfDP64wi";
-        let mut cmd = Command::cargo_bin(BIN)?;
-        cmd.arg("verify")
-            .arg("-t")
-            .arg("btc-legacy")
-            .arg(sig_expected)
-            .arg(msg)
-            .arg(address);
+    // negative test case: wrong address
+    let address = "1PYdSSwsXgJe1MGMzkeXCdshxjMfDP64wi";
+    let mut cmd = Command::cargo_bin(BIN)?;
+    cmd.arg("verify")
+        .arg(sig_expected)
+        .arg("-t")
+        .arg("btc-legacy")
+        .arg(msg)
+        .arg("-a")
+        .arg(address);
 
-        cmd.assert()
-            .success()
-            .stdout(predicate::str::contains("false"));
-    */
+    cmd.assert()
+        .success()
+        .stdout(predicate::str::contains("false"));
 
     Ok(())
 }
