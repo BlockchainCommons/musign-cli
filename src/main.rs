@@ -151,18 +151,12 @@ pub struct CmdMultisigSetup {
     pubkeys: Vec<String>,
 }
 
-#[derive(Debug, Clap)]
-#[clap(group = ArgGroup::new("seck").required(true))]
+#[derive(Debug, Clap, Serialize, Deserialize)]
+#[clap()]
 pub struct CmdMultisigConstruct {
-    /// Threshold
-    #[clap(required = true)]
-    threshold: u8,
-    /// List of public keys to participate in a multisig
-    #[clap(required = true)]
-    pubkeys: Vec<String>,
-    /// Signature type
-    #[clap(arg_enum, default_value = "ecdsa", short = 't')]
-    sig_type: SigType,
+    /// Multisignature setup (JSON)
+    #[clap(required = true, parse(try_from_str = serde_json::from_str))]
+    setup: CmdMultisigSetup,
 }
 
 #[derive(Debug, Clap)]
@@ -227,6 +221,8 @@ enum Opt {
 
     /// Set up a multisig
     MultisigSetup(CmdMultisigSetup),
+
+    MultisigConstruct(CmdMultisigConstruct),
 }
 
 fn main() {
@@ -374,6 +370,10 @@ fn main() {
                 SigType::Schnorr => {}
                 SigType::BtcLegacy => {}
             };
+        }
+
+        Opt::MultisigConstruct(cmd) => {
+            println!("{}", serde_json::to_string(&cmd).unwrap());
         }
     };
 }
