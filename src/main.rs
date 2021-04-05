@@ -15,6 +15,8 @@ use bitcoin::util::address::Address;
 use bitcoin::util::key::PublicKey as Public_key;
 use bitcoin::util::misc::{signed_msg_hash, MessageSignature};
 
+use std::io::{stdin, BufReader, Read};
+
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 enum OneOrMany<T> {
     One(T),
@@ -256,13 +258,13 @@ pub struct CmdMultisigVerify {
 }
 
 #[derive(Debug, Clap)]
-#[clap(group = ArgGroup::new("seck").required(true))]
+#[clap()]
 pub struct CmdSign {
     /// Path to private key (Not implemented)
-    #[clap(parse(from_os_str), value_hint = ValueHint::AnyPath, short = 'f', group="seck")]
+    #[clap(parse(from_os_str), value_hint = ValueHint::AnyPath, short = 'f')]
     seckey_file: Option<PathBuf>,
     /// Secret in hex
-    #[clap(group = "seck", short)]
+    #[clap(short)]
     secret: Option<String>,
     /// Message to sign.
     #[clap(required = true)]
@@ -371,15 +373,21 @@ fn main() {
             };
         }
         Opt::Sign(cmd) => {
+            let mut privkey = String::new();
+            let ret = stdin().read_to_string(&mut privkey);
+            let sec = if ret.is_ok() {
+                privkey.retain(|c| !c.is_whitespace());
+                privkey
+            } else {
+                cmd.secret.clone().expect("error private key string")
+            };
+
             let out = match cmd.sig_type {
                 SigType::ECDSA => {
-                    let sig = sign(
-                        cmd.secret.clone().expect("error private key string"),
-                        cmd.msg.clone(),
-                    );
+                    let sig = sign(sec.clone(), cmd.msg.clone());
+
                     // TODO: make a method inside a struct
-                    let seed_bytes =
-                        hex::decode(cmd.secret.unwrap()).expect("Decoding seed failed");
+                    let seed_bytes = hex::decode(sec).expect("Decoding seed failed");
                     let (_, pubkey) = generate_keypair(seed_bytes);
 
                     let mut sig = Sig {
@@ -401,12 +409,9 @@ fn main() {
                     sig
                 }
                 SigType::Schnorr => {
-                    let sig = sign_schnorr(
-                        cmd.secret.clone().expect("error private key string"),
-                        cmd.msg.clone(),
-                    );
+                    let sig = sign_schnorr(sec.clone(), cmd.msg.clone());
                     // TODO: make a method inside a struct
-                    let (_, pubkey) = generate_schnorr_keypair(cmd.secret.clone().unwrap());
+                    let (_, pubkey) = generate_schnorr_keypair(sec);
 
                     let mut sig = Sig {
                         sig_type: cmd.sig_type,
@@ -428,8 +433,7 @@ fn main() {
                 }
 
                 SigType::BtcLegacy => {
-                    let seckey =
-                        SecretKey::from_str(&cmd.secret.unwrap()).expect("Private key error");
+                    let seckey = SecretKey::from_str(&sec).expect("Private key error");
                     let (sig, addr) = signmessage(seckey, cmd.msg.clone());
                     Sig {
                         sig_type: cmd.sig_type,
