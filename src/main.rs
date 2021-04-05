@@ -1,5 +1,6 @@
 use clap::{ArgGroup, Clap, ValueHint};
 use std::collections::HashSet;
+use std::io::BufRead;
 use std::path::PathBuf;
 use std::str::FromStr;
 extern crate hex;
@@ -16,12 +17,6 @@ use bitcoin::util::key::PublicKey as Public_key;
 use bitcoin::util::misc::{signed_msg_hash, MessageSignature};
 
 use std::io::{stdin, BufReader, Read};
-
-#[derive(Serialize, Deserialize, Debug, PartialEq)]
-enum OneOrMany<T> {
-    One(T),
-    Many(Vec<T>),
-}
 
 #[derive(Serialize, Deserialize, Debug, Clap, PartialEq, Clone, Eq, Hash)]
 enum SigType {
@@ -43,8 +38,6 @@ struct Sig {
     pubkey: Option<String>,
     #[serde(skip_serializing_if = "Option::is_none")]
     address: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    quorum: Option<[u16; 2]>, // [2,3] -> 2 out of 3
 }
 
 fn signmessage(seckey: SecretKey, message: String) -> (String, String) {
@@ -206,7 +199,7 @@ fn multisig_combine<'a>(obj: &'a mut Vec<CmdMultisigConstruct>) -> &'a CmdMultis
 #[derive(Debug, Clap, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
 #[clap()]
 pub struct CmdMultisigSetup {
-    /// Signature type
+    /// Signature type. Currently only ecdsa implemented.
     #[clap(arg_enum, default_value = "ecdsa", short = 't')]
     sig_type: SigType,
     /// Threshold
@@ -234,13 +227,11 @@ pub struct CmdMultisigConstruct {
 #[derive(Debug, Clap, Serialize, Deserialize, Clone)]
 #[clap()]
 pub struct CmdMultisigSign {
-    /// Multisig object
-    #[clap(required = true, parse(try_from_str = serde_json::from_str))]
-    obj: CmdMultisigConstruct,
     #[clap(short)]
     secret: String,
 }
 
+/*
 #[derive(Debug, Clap, Serialize, Deserialize, Clone)]
 #[clap()]
 pub struct CmdMultisigCombine {
@@ -248,14 +239,18 @@ pub struct CmdMultisigCombine {
     #[clap(required = true, parse(try_from_str = serde_json::from_str))]
     obj: Vec<CmdMultisigConstruct>,
 }
+*/
 
+/*
 #[derive(Debug, Clap, Serialize, Deserialize, Clone)]
 #[clap()]
 pub struct CmdMultisigVerify {
     /// Multisig object
-    #[clap(required = true, parse(try_from_str = serde_json::from_str))]
-    obj: CmdMultisigConstruct,
+    // #[clap(required = true, parse(try_from_str = serde_json::from_str))]
+    #[clap(skip)]
+    obj: Option<CmdMultisigConstruct>,
 }
+*/
 
 #[derive(Debug, Clap)]
 #[clap()]
@@ -317,21 +312,25 @@ enum Opt {
     /// Verify a signature for a given message. True is returned for a valid signature otherwise False.
     Verify(CmdVerify),
 
-    /// Set up a multisig
+    /// Set up a multisig: quorum and all the participants (pubkeys)
     #[clap(display_order = 2000)]
     MultisigSetup(CmdMultisigSetup),
 
-    #[clap(display_order = 2001)]
+    /// Add message to a multisig setup. Returns an unsigned multisignature object.
+    #[clap(display_order = 2001, name = "multisig-construct-msg")]
     MultisigConstruct(CmdMultisigConstruct),
 
+    /// Sign a multisignature object passed over via stdin.
     #[clap(display_order = 2002)]
     MultisigSign(CmdMultisigSign),
 
+    /// Combine signatures of individually signed multisignature objects. Pass them over stdin.
     #[clap(display_order = 2003)]
-    MultisigCombine(CmdMultisigCombine),
+    MultisigCombine,
 
+    /// Verify a multisignature object passed over by stdin
     #[clap(display_order = 2004)]
-    MultisigVerify(CmdMultisigVerify),
+    MultisigVerify,
 }
 
 fn main() {
@@ -375,11 +374,12 @@ fn main() {
         Opt::Sign(cmd) => {
             let mut privkey = String::new();
             let ret = stdin().read_to_string(&mut privkey);
-            let sec = if ret.is_ok() {
+            let sec = if ret.is_ok() && privkey != "" {
                 privkey.retain(|c| !c.is_whitespace());
                 privkey
             } else {
-                cmd.secret.clone().expect("error private key string")
+                let s = cmd.secret.clone().expect("error private key string");
+                s
             };
 
             let out = match cmd.sig_type {
@@ -397,7 +397,6 @@ fn main() {
                         message: cmd.msg,
                         pubkey: Some(pubkey.to_string()),
                         address: None,
-                        quorum: None,
                     };
 
                     if cmd.format == "cbor" {
@@ -420,7 +419,6 @@ fn main() {
                         message: cmd.msg,
                         pubkey: Some(pubkey.to_string()),
                         address: None,
-                        quorum: None,
                     };
 
                     if cmd.format == "cbor" {
@@ -442,7 +440,6 @@ fn main() {
                         message: cmd.msg,
                         pubkey: None,
                         address: Some(addr),
-                        quorum: None,
                     }
                 }
             };
@@ -486,9 +483,10 @@ fn main() {
         Opt::MultisigConstruct(cmd) => {
             println!("{}", serde_json::to_string(&cmd).unwrap());
         }
-        // cargo run -- multisig-sign "$(< multisig_object.json)"  -s dd
+
         Opt::MultisigSign(cmd) => {
-            let mut js: CmdMultisigConstruct = cmd.obj.clone();
+            let multisig_reader = BufReader::new(stdin());
+            let mut js: CmdMultisigConstruct = serde_json::from_reader(multisig_reader).unwrap();
             // remove signatures before signing
             let mut sigs = js.signatures;
             js.signatures = None;
@@ -511,14 +509,22 @@ fn main() {
             println!("{}", serde_json::to_string(&js).unwrap());
         }
 
-        Opt::MultisigVerify(cmd) => {
-            let ret = multisig_verify(cmd.obj);
+        Opt::MultisigVerify => {
+            let multisig_reader = BufReader::new(stdin());
+            let obj: CmdMultisigConstruct = serde_json::from_reader(multisig_reader).unwrap();
+            let ret = multisig_verify(obj);
             println!("{}", ret);
         }
 
-        Opt::MultisigCombine(cmd) => {
-            let mut c = cmd.obj.clone();
-            let ret = multisig_combine(&mut c);
+        Opt::MultisigCombine => {
+            let mut v: Vec<CmdMultisigConstruct> = Vec::new();
+            let stdin = stdin();
+            for line in stdin.lock().lines() {
+                let s = line.unwrap();
+                let p: CmdMultisigConstruct = serde_json::from_str(&s).unwrap();
+                v.push(p);
+            }
+            let ret = multisig_combine(&mut v);
             println!("{}", serde_json::to_string(&ret).unwrap());
         }
     };

@@ -5,7 +5,7 @@ This document shows how to use basic commands with `musign`.
 ### Generate a public key
 
 ```bash
-musign-generate 
+$ musign-generate 
 Generate a public key from a secret (private key/seed/secret key). In case of btc-legacy type p2pkh
 address is generated
 
@@ -150,9 +150,158 @@ true
 Verifying a `BTC legacy` signature with and address `12dR2srvCmffup7yBu5fdb3qkhFudTBnvZ`
 
 ```bash
-musign verify -t btc-legacy IJIhzsY2hAFo613hTg9Gz4qc3ffWKVz3A+Wux8lwYSj5Vm1Mxqn5i7VTdhSuysrNAexNcSMBlkHyqOym77IiC/0= "Hello world!" -a 12dR2srvCmffup7yBu5fdb3qkhFudTBnvZ
+$ musign verify -t btc-legacy IJIhzsY2hAFo613hTg9Gz4qc3ffWKVz3A+Wux8lwYSj5Vm1Mxqn5i7VTdhSuysrNAexNcSMBlkHyqOym77IiC/0= "Hello world!" -a 12dR2srvCmffup7yBu5fdb3qkhFudTBnvZ
 
 true
+```
+
+### Multisignatures
+
+#### Multisig-setup
+
+```
+musign-multisig-setup 
+Set up a multisig: quorum and all the participants (pubkeys)
+
+USAGE:
+    musign multisig-setup [OPTIONS] <threshold> -p <pubkeys>...
+
+ARGS:
+    <threshold>    Threshold
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -p <pubkeys>...        List of public keys to participate in a multisig
+    -t <sig-type>          Signature type. Currently only ecdsa implemented [default: ecdsa]
+                           [possible values: ecdsa, schnorr, btc-legacy]
+
+```
+
+Let's create a multisignature setup 2 of 3:
+
+
+```bash
+$ musign multisig-setup 2 -p 03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1 026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435 0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d > m_setup.json
+```
+
+```bash
+echo $(<m_setup.json)
+{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]}
+```
+
+#### multisig-construct-msg
+
+```bash
+musign-multisig-construct-msg 
+Add message to a multisig setup. Returns an unsigned multisignature object
+
+USAGE:
+    musign multisig-construct-msg <msg> <setup>
+
+ARGS:
+    <msg>      Message to sign
+    <setup>    Multisignature setup (JSON)
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+```
+
+Now, we can create a multisignature object with a message to be signed with the participants of the multisignature setup:
+
+```bash
+$ musign  multisig-construct-msg "Hello world!" "$(<m_setup.json)" > m_obj.json
+```
+
+```bash
+echo $(<m_obj.json)
+{"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]}}
+```
+
+#### multisig-construct-sign
+
+```bash
+$ musign-multisig-sign 
+Sign a multisignature object passed over via stdin
+
+USAGE:
+    musign multisig-sign -s <secret>
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+
+OPTIONS:
+    -s <secret>
+
+```
+We can now start signing our multisig object:
+
+```bash
+$ musign multisig-sign -s e6dd32f8761625f105c39a39f19370b3521d845a12456d60ce44debd0a362641 < m_obj.json > m_obj_signed1.json
+```
+
+```bash
+$ musign multisig-sign -s aadd32f8761625f105c39a39f19370b3521d845a12456d60ce44debd0a362641 < m_obj.json > m_obj_signed2.json
+```
+
+```bash
+echo $(<m_obj_signed1.json)
+{"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]},"signatures":["3045022100b762298fe57c79493630077f05b708b9e57498b0f6ffb950770a96144fe36f29022055579bf40db6c32355aaf4eedd16713f3fe4d232714397b2fcc0d67953037969"]}
+```
+
+#### multisig-combine
+
+```bash
+$ musign-multisig-combine 
+Combine signatures of individually signed multisignature objects. Pass them over stdin
+
+USAGE:
+    musign multisig-combine
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+```
+
+Let's combine the signatures:
+
+```bash
+$ cat m_obj_signed1.json m_obj_signed2.json | musign multisig-combine > m_obj_signed_combined.json
+```
+
+*Note:* Combining signatures is not necessary if we had signed m_obj_signed1.json with the second private key.
+
+#### multisig-verify
+
+```bash
+musign-multisig-verify 
+Verify a multisignature object passed over by stdin
+
+USAGE:
+    musign multisig-verify
+
+FLAGS:
+    -h, --help       Prints help information
+    -V, --version    Prints version information
+```
+
+Finally, we can verify our combined multisignature object:
+
+```bash
+$ musign multisig-verify < m_obj_signed_combined.json
+
+true
+```
+
+This is our final object:
+
+```bash
+echo $(<m_obj_signed_combined.json)
+{"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]},"signatures":["3045022100c71a9ae764c5f457c7d9ff0e7e11004e3c328492ab7894972f9e14403386b1320220267bb019a8d86a92f4dfefce26a3001d8c1995a284e0bb664573b9e3ada7b36c","3045022100b762298fe57c79493630077f05b708b9e57498b0f6ffb950770a96144fe36f29022055579bf40db6c32355aaf4eedd16713f3fe4d232714397b2fcc0d67953037969"]}
 ```
 
 ### Help
@@ -170,11 +319,18 @@ FLAGS:
     -V, --version    Prints version information
 
 SUBCOMMANDS:
-    generate    Generate a public key from a secret (private key/seed/secret key). In case of
-                btc-legacy type p2pkh address is generated
-    help        Prints this message or the help of the given subcommand(s)
-    sign        Sign a message. Signature is returned
-    verify      Verify a signature for a given message. True is returned for a valid signature
-                otherwise false
+    generate                  Generate a public key from a secret (private key/seed/secret key).
+                              In case of btc-legacy type p2pkh address is generated
+    help                      Prints this message or the help of the given subcommand(s)
+    sign                      Sign a message. Signature is returned
+    verify                    Verify a signature for a given message. True is returned for a
+                              valid signature otherwise False
+    multisig-setup            Set up a multisig: quorum and all the participants (pubkeys)
+    multisig-construct-msg    Add message to a multisig setup. Returns an unsigned
+                              multisignature object
+    multisig-sign             Sign a multisignature object passed over via stdin
+    multisig-combine          Combine signatures of individually signed multisignature objects.
+                              Pass them over stdin
+    multisig-verify           Verify a multisignature object passed over by stdin
 
 ```
