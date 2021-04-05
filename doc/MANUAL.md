@@ -221,7 +221,7 @@ echo $(<m_obj.json)
 {"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]}}
 ```
 
-#### multisig-construct-sign
+#### multisig-sign
 
 ```bash
 $ musign-multisig-sign 
@@ -252,6 +252,10 @@ $ musign multisig-sign -s aadd32f8761625f105c39a39f19370b3521d845a12456d60ce44de
 echo $(<m_obj_signed1.json)
 {"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]},"signatures":["3045022100b762298fe57c79493630077f05b708b9e57498b0f6ffb950770a96144fe36f29022055579bf40db6c32355aaf4eedd16713f3fe4d232714397b2fcc0d67953037969"]}
 ```
+
+The JSON object is signed by first removing all the whitespaces. The order of JSON properties is preserved.
+
+If we are passing in the object that already contains some signatures, the signatures are also removed before signing.
 
 #### multisig-combine
 
