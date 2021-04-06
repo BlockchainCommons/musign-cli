@@ -300,7 +300,7 @@ enum Opt {
     /// p2pkh address is generated
     Generate {
         /// Secret (also known as seed, private key or secret key) in hex (64 chars).
-        secret: String,
+        secret: Option<String>,
         /// Type of signature.
         #[clap(arg_enum, default_value = "ecdsa", short = 't')]
         sig_type: SigType,
@@ -340,6 +340,17 @@ fn main() {
 
     match matches {
         Opt::Generate { secret, sig_type } => {
+            let secret = if secret != None {
+                let s = secret.clone().expect("error private key string");
+                s
+            } else {
+                let mut privkey = String::new();
+                let ret = stdin().read_to_string(&mut privkey);
+                assert!(ret.is_ok());
+                privkey.retain(|c| !c.is_whitespace());
+                privkey
+            };
+
             let seed_bytes = hex::decode(secret.clone()).expect("Decoding seed failed");
 
             match sig_type {
