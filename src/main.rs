@@ -1,4 +1,4 @@
-use clap::{ArgGroup, Clap, ValueHint};
+use clap::{Clap, ValueHint};
 use std::collections::HashSet;
 use std::io::BufRead;
 use std::path::PathBuf;
@@ -274,7 +274,7 @@ pub struct CmdSign {
 
 // musign verify -h is correct while musign help verify is not
 #[derive(Debug, Clap)]
-#[clap(group = ArgGroup::new("verify").required(true) )]
+#[clap()]
 pub struct CmdVerify {
     /// Signature in hex
     #[clap(required = true)]
@@ -283,12 +283,12 @@ pub struct CmdVerify {
     #[clap(required = true)]
     message: String,
     /// Public key in hex
-    #[clap(group = "verify", short = 'p')]
+    #[clap(short = 'p')]
     pubkey: Option<String>,
     #[clap(arg_enum, default_value = "ecdsa", short = 't')]
     sig_type: SigType,
     /// BTC p2pkh address
-    #[clap(group = "verify", short = 'a')]
+    #[clap(short = 'a')]
     address: Option<String>,
 }
 
@@ -372,14 +372,15 @@ fn main() {
             };
         }
         Opt::Sign(cmd) => {
-            let mut privkey = String::new();
-            let ret = stdin().read_to_string(&mut privkey);
-            let sec = if ret.is_ok() && privkey != "" {
-                privkey.retain(|c| !c.is_whitespace());
-                privkey
-            } else {
+            let sec = if cmd.secret != None {
                 let s = cmd.secret.clone().expect("error private key string");
                 s
+            } else {
+                let mut privkey = String::new();
+                let ret = stdin().read_to_string(&mut privkey);
+                assert!(ret.is_ok());
+                privkey.retain(|c| !c.is_whitespace());
+                privkey
             };
 
             let out = match cmd.sig_type {
@@ -454,13 +455,25 @@ fn main() {
         }
 
         Opt::Verify(cmd) => {
+            let pubkey = if cmd.pubkey != None {
+                let s = cmd.pubkey.clone().expect("error private key string");
+                s
+            } else {
+                let mut pubkey = String::new();
+                let ret = stdin().read_to_string(&mut pubkey);
+                assert!(ret.is_ok());
+                pubkey.retain(|c| !c.is_whitespace());
+                pubkey
+            };
+
+            //let pubkey = cmd.pubkey.clone().expect("error private key string");
             match cmd.sig_type {
                 SigType::ECDSA => {
-                    let res = verify(cmd.signature, cmd.message, cmd.pubkey.unwrap());
+                    let res = verify(cmd.signature, cmd.message, pubkey);
                     println!("{}", res);
                 }
                 SigType::Schnorr => {
-                    let res = verify_schnorr(cmd.signature, cmd.message, cmd.pubkey.unwrap());
+                    let res = verify_schnorr(cmd.signature, cmd.message, pubkey);
                     println!("{}", res);
                 }
                 SigType::BtcLegacy => {
