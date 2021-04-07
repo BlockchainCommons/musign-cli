@@ -310,7 +310,7 @@ echo $(<m_obj_signed_combined.json)
 
 ### Using musign with keytool
 
-We can pipe a hex private or a public key generated with [keytool](https://github.com/BlockchainCommons/bc-keytool-cli) into musign. Let's sign a simple message with a keyderived from a `HD key` with a derivation path of `m/99h/1h/2h/2/0`
+We can pipe a hex private or a public key generated with [keytool](https://github.com/BlockchainCommons/bc-keytool-cli) into musign. Let's sign a simple message with a private key derived from a `HD key` with a derivation path of `m/99h/1h/2h/2/0`
 
 ```bash
 $ keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/2/0 | musign sign "Hello world!"
@@ -328,15 +328,21 @@ true
 
 #### Multisignatures
 
-Similarily, we can pipe `keytool` keys into musign subcommands associated with multisignatures.
+Similarily, we can pipe `keytool` keys in hex into musign subcommands associated with multisignatures.
 
 ```bash
-$ { keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/0 && keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/0; } | musign multisig-setup 2
+$ { keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/0 && keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/1; } | musign multisig-setup 2
 
-{"sig_type":"ECDSA","threshold":2,"pubkeys":["0fb01cbd70be8fcfaf11e64681d99a5d8490b8672ae587861709b21c5b6f9113","0fb01cbd70be8fcfaf11e64681d99a5d8490b8672ae587861709b21c5b6f9113"]}
+{"sig_type":"ECDSA","threshold":2,"pubkeys":["0fb01cbd70be8fcfaf11e64681d99a5d8490b8672ae587861709b21c5b6f9113","db20fa1bd20a2310d09f16e279743a2edf400ee9804cd62b86fde571a31fffe0"]}
 ```
 
+When signing a multisig object we have to pipe the object itself and the private key:
 
+```bash
+$ { cat tmp.json && keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/2/0;} | musign multisig-sign
+
+{"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]},"signatures":["304402205f18db844afe9ca5f61b4da47a422d1d34c2d0bbb590d413757646a1f32ac10d0220706134b6f8f33b0ebdafc5afdd3ddecc45103cab9554735f121cfe582df1b788"]}
+```
 
 ### Help
 

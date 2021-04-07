@@ -228,7 +228,7 @@ pub struct CmdMultisigConstruct {
 #[clap()]
 pub struct CmdMultisigSign {
     #[clap(short)]
-    secret: String,
+    secret: Option<String>,
 }
 
 /*
@@ -518,9 +518,21 @@ fn main() {
             println!("{}", serde_json::to_string(&cmd).unwrap());
         }
 
-        Opt::MultisigSign(cmd) => {
-            let multisig_reader = BufReader::new(stdin());
-            let mut js: CmdMultisigConstruct = serde_json::from_reader(multisig_reader).unwrap();
+        Opt::MultisigSign(mut cmd) => {
+            let mut v: Vec<String> = Vec::new();
+            let stdin = stdin();
+            for line in stdin.lock().lines() {
+                let s = line.unwrap();
+                v.push(s);
+            }
+
+            if v.len() == 2 {
+                // The second stdin arg must be private key, Otherwise
+                // it must be provided as cli arg -s
+                cmd.secret = Some(v[1].clone());
+            }
+
+            let mut js: CmdMultisigConstruct = serde_json::from_str(&v[0]).unwrap();
             // remove signatures before signing
             let mut sigs = js.signatures;
             js.signatures = None;
@@ -529,7 +541,7 @@ fn main() {
             let mut j = serde_json::to_string(&js).unwrap();
             j.retain(|c| !c.is_whitespace());
 
-            let sig = sign(cmd.secret.clone(), j.clone());
+            let sig = sign(cmd.secret.unwrap().clone(), j.clone());
 
             match sigs {
                 Some(ref mut v) => v.push(sig.to_string()),
