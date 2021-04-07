@@ -313,9 +313,13 @@ echo $(<m_obj_signed_combined.json)
 {"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]},"signatures":["3045022100c71a9ae764c5f457c7d9ff0e7e11004e3c328492ab7894972f9e14403386b1320220267bb019a8d86a92f4dfefce26a3001d8c1995a284e0bb664573b9e3ada7b36c","3045022100b762298fe57c79493630077f05b708b9e57498b0f6ffb950770a96144fe36f29022055579bf40db6c32355aaf4eedd16713f3fe4d232714397b2fcc0d67953037969"]}
 ```
 
-### Using musign with keytool
+### Using Musign with Keytool
 
-We can pipe a hex private or a public key generated with [keytool](https://github.com/BlockchainCommons/bc-keytool-cli) into musign. Let's sign a simple message with a private key derived from a `HD key` with a derivation path of `m/99h/1h/2h/2/0`
+We can pipe a hex private or a public key generated with [keytool](https://github.com/BlockchainCommons/bc-keytool-cli) into musign.
+
+#### Single Signatures
+
+Let's sign a simple message with a private key derived from a `HD key` with a derivation path of `m/99h/1h/2h/2/0`
 
 ```bash
 $ keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/2/0 | musign sign "Hello world!"
@@ -327,6 +331,24 @@ Let's verify the signature with the public key derived form the `HD key` in `key
 
 ```bash
 keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-pub-ec-key --full-address-derivation-path m/99h/1h/2h/2/0 | musign verify "$(cat object.json | jq -r '.signature')" "$(cat object.json | jq -r '.message')"
+
+true
+```
+
+#### Verify a Bitcoin Legacy Signature
+
+Let's first create a signature
+
+```bash
+$ keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/2/0 | musign sign "Hello world!" -t btc-legacy
+
+{"sig_type":"BtcLegacy","signature":"IP1TzudsYCBkANtRiHpwZhTAOTldUyTNc5WZ/Ec5Jg6+dQi2f/wyUhNsF8QQJrTSwmiAIXBG6++DLs/MGz3a/IU=","message":"Hello world!","address":"1MYvHT6iaJdKq5ighZgqormkKWfPPHBMTR"}
+```
+
+Now we can verify a signature via `P2PKH` address
+
+```bash
+$ keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-pkh --full-address-derivation-path m/99h/1h/2h/2/0 | musign verify IP1TzudsYCBkANtRiHpwZhTAOTldUyTNc5WZ/Ec5Jg6+dQi2f/wyUhNsF8QQJrTSwmiAIXBG6++DLs/MGz3a/IU=  "Hello world!" -t btc-legacy
 
 true
 ```
