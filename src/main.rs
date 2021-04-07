@@ -93,11 +93,7 @@ fn verify_schnorr(signature: String, msg: String, pubkey: String) -> bool {
     let pubkey = schnorrsig::PublicKey::from_str(&pubkey).unwrap();
     let sig = schnorrsig::Signature::from_str(&signature).expect("Signature format incorrect");
     let message = Message::from_hashed_data::<sha256::Hash>(msg.as_bytes());
-    if s.schnorrsig_verify(&sig, &message, &pubkey).is_ok() {
-        true
-    } else {
-        false
-    }
+    s.schnorrsig_verify(&sig, &message, &pubkey).is_ok()
 }
 
 fn generate_keypair(seed: Vec<u8>) -> (SecretKey, PublicKey) {
@@ -126,11 +122,7 @@ fn verify(signature: String, msg: String, pubkey: String) -> bool {
     let message = Message::from_hashed_data::<sha256::Hash>(msg.as_bytes());
     let secp = Secp256k1::new();
 
-    if secp.verify(&message, &sig, &pubkey).is_ok() {
-        true
-    } else {
-        false
-    }
+    secp.verify(&message, &sig, &pubkey).is_ok()
 }
 
 // ecdsa multisig
@@ -205,7 +197,8 @@ pub struct CmdMultisigSetup {
     /// Threshold
     #[clap(required = true)]
     threshold: u8,
-    /// List of public keys to participate in a multisig
+    /// List of public keys to participate in a multisig in hex format.
+    /// Alternatively, the keys can be piped via STDIN
     #[clap(short)]
     pubkeys: Option<Vec<String>>,
 }
@@ -227,30 +220,11 @@ pub struct CmdMultisigConstruct {
 #[derive(Debug, Clap, Serialize, Deserialize, Clone)]
 #[clap()]
 pub struct CmdMultisigSign {
+    /// Private key in hex to sign the multisig object.
+    /// Alternatively, the key can be provided via STDIN
     #[clap(short)]
     secret: Option<String>,
 }
-
-/*
-#[derive(Debug, Clap, Serialize, Deserialize, Clone)]
-#[clap()]
-pub struct CmdMultisigCombine {
-    /// Multisig object
-    #[clap(required = true, parse(try_from_str = serde_json::from_str))]
-    obj: Vec<CmdMultisigConstruct>,
-}
-*/
-
-/*
-#[derive(Debug, Clap, Serialize, Deserialize, Clone)]
-#[clap()]
-pub struct CmdMultisigVerify {
-    /// Multisig object
-    // #[clap(required = true, parse(try_from_str = serde_json::from_str))]
-    #[clap(skip)]
-    obj: Option<CmdMultisigConstruct>,
-}
-*/
 
 #[derive(Debug, Clap)]
 #[clap()]
@@ -258,7 +232,8 @@ pub struct CmdSign {
     /// Path to private key (Not implemented)
     #[clap(parse(from_os_str), value_hint = ValueHint::AnyPath, short = 'f')]
     seckey_file: Option<PathBuf>,
-    /// Secret in hex
+    /// Private key in hex.
+    /// Alternatively, the key can be piped via STDIN
     #[clap(short)]
     secret: Option<String>,
     /// Message to sign.
@@ -282,7 +257,8 @@ pub struct CmdVerify {
     /// Message string
     #[clap(required = true)]
     message: String,
-    /// Public key in hex
+    /// Public key in hex.
+    /// Alternatively, the key can be provided via STDIN
     #[clap(short = 'p')]
     pubkey: Option<String>,
     #[clap(arg_enum, default_value = "ecdsa", short = 't')]
@@ -297,9 +273,10 @@ pub struct CmdVerify {
 /// Generate secp256k1 keys, sign and verify messages with ECDSA and Schnorr
 enum Opt {
     /// Generate a public key from a secret (private key/seed/secret key). In case of btc-legacy type
-    /// p2pkh address is generated
+    /// p2pkh address is generated.
     Generate {
-        /// Secret (also known as seed, private key or secret key) in hex (64 chars).
+        /// Secret (also known as seed, private key or secret key) in hex.
+        /// Alternatively, the key can be provided via STDIN
         secret: Option<String>,
         /// Type of signature.
         #[clap(arg_enum, default_value = "ecdsa", short = 't')]
@@ -309,10 +286,10 @@ enum Opt {
     /// Sign a message. Signature is returned.
     Sign(CmdSign),
 
-    /// Verify a signature for a given message. True is returned for a valid signature otherwise False.
+    /// Verify a signature for a given message. True is returned for a valid signature otherwise false.
     Verify(CmdVerify),
 
-    /// Set up a multisig: quorum and all the participants (pubkeys)
+    /// Set up a multisig: quorum and all the participants (pubkeys in hex).
     #[clap(display_order = 2000)]
     MultisigSetup(CmdMultisigSetup),
 
@@ -320,15 +297,15 @@ enum Opt {
     #[clap(display_order = 2001, name = "multisig-construct-msg")]
     MultisigConstruct(CmdMultisigConstruct),
 
-    /// Sign a multisignature object passed over via stdin.
+    /// Sign a multisignature object passed via STDIN.
     #[clap(display_order = 2002)]
     MultisigSign(CmdMultisigSign),
 
-    /// Combine signatures of individually signed multisignature objects. Pass them over stdin.
+    /// Combine signatures of individually signed multisignature objects. Pass them via STDIN.
     #[clap(display_order = 2003)]
     MultisigCombine,
 
-    /// Verify a multisignature object passed over by stdin
+    /// Verify a multisignature object passed via STDIN. Returns true or false.
     #[clap(display_order = 2004)]
     MultisigVerify,
 }
