@@ -270,7 +270,7 @@ pub struct CmdVerify {
 
 #[derive(Clap, Debug)]
 #[clap(name = "musign-cli")]
-/// Generate secp256k1 keys, sign and verify messages with ECDSA and Schnorr
+/// Generate secp256k1 keys, sign and verify messages with ECDSA and Schnorr in a single- or multisignature setup.
 enum Opt {
     /// Generate a public key from a secret (private key/seed/secret key). In case of btc-legacy type
     /// p2pkh address is generated.
@@ -446,6 +446,8 @@ fn main() {
             let pubkey = if cmd.pubkey != None {
                 let s = cmd.pubkey.clone().expect("error private key string");
                 s
+            } else if cmd.address != None {
+                cmd.address.unwrap()
             } else {
                 let mut pubkey = String::new();
                 let ret = stdin().read_to_string(&mut pubkey);
@@ -454,7 +456,6 @@ fn main() {
                 pubkey
             };
 
-            //let pubkey = cmd.pubkey.clone().expect("error private key string");
             match cmd.sig_type {
                 SigType::ECDSA => {
                     let res = verify(cmd.signature, cmd.message, pubkey);
@@ -465,7 +466,7 @@ fn main() {
                     println!("{}", res);
                 }
                 SigType::BtcLegacy => {
-                    let ret = verifymessage(cmd.signature, cmd.address.unwrap(), cmd.message);
+                    let ret = verifymessage(cmd.signature, pubkey, cmd.message);
                     println!("{}", ret);
                 }
             };

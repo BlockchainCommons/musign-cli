@@ -10,10 +10,11 @@ Generate a public key from a secret (private key/seed/secret key). In case of bt
 address is generated
 
 USAGE:
-    musign generate [OPTIONS] <secret>
+    musign generate [OPTIONS] [secret]
 
 ARGS:
-    <secret>    Secret (also known as seed, private key or secret key) in hex (64 chars)
+    <secret>    Secret (also known as seed, private key or secret key) in hex. Alternatively,
+                the key can be provided via STDIN
 
 FLAGS:
     -h, --help       Prints help information
@@ -53,7 +54,7 @@ musign-sign
 Sign a message. Signature is returned
 
 USAGE:
-    musign sign [OPTIONS] <msg> <-f <seckey-file>|-s <secret>>
+    musign sign [OPTIONS] <msg>
 
 ARGS:
     <msg>    Message to sign
@@ -65,7 +66,7 @@ FLAGS:
 OPTIONS:
     -r <format>             Output format [default: json] [possible values: json, cbor]
     -f <seckey-file>        Path to private key (Not implemented)
-    -s <secret>             Secret in hex
+    -s <secret>             Private key in hex. Alternatively, the key can be piped via STDIN
     -t <sig-type>           Signature type [default: ecdsa] [possible values: ecdsa, schnorr, btc-
                             legacy]
 ```
@@ -112,10 +113,10 @@ $ musign sign -t btc-legacy -s 7694c743a0159ebfb79a65aae8970fcc5be5e9db8efa1ebf7
 
 ```bash
 musign-verify 
-Verify a signature for a given message. True is returned for a valid signature otherwise False
+Verify a signature for a given message. True is returned for a valid signature otherwise false
 
 USAGE:
-    musign verify [OPTIONS] <signature> <message> <-p <pubkey>|-a <address>>
+    musign verify [OPTIONS] <signature> <message>
 
 ARGS:
     <signature>    Signature in hex
@@ -127,7 +128,7 @@ FLAGS:
 
 OPTIONS:
     -a <address>         BTC p2pkh address
-    -p <pubkey>          Public key in hex
+    -p <pubkey>          Public key in hex. Alternatively, the key can be provided via STDIN
     -t <sig-type>        [default: ecdsa] [possible values: ecdsa, schnorr, btc-legacy]
 ```
 
@@ -161,10 +162,10 @@ true
 
 ```
 musign-multisig-setup 
-Set up a multisig: quorum and all the participants (pubkeys)
+Set up a multisig: quorum and all the participants (pubkeys in hex)
 
 USAGE:
-    musign multisig-setup [OPTIONS] <threshold> -p <pubkeys>...
+    musign multisig-setup [OPTIONS] <threshold>
 
 ARGS:
     <threshold>    Threshold
@@ -174,7 +175,8 @@ FLAGS:
     -V, --version    Prints version information
 
 OPTIONS:
-    -p <pubkeys>...        List of public keys to participate in a multisig
+    -p <pubkeys>...        List of public keys to participate in a multisig in hex format.
+                           Alternatively, the keys can be piped via STDIN
     -t <sig-type>          Signature type. Currently only ecdsa implemented [default: ecdsa]
                            [possible values: ecdsa, schnorr, btc-legacy]
 
@@ -224,18 +226,20 @@ echo $(<m_obj.json)
 #### multisig-sign
 
 ```bash
-$ musign-multisig-sign 
-Sign a multisignature object passed over via stdin
+$ musign-multisig-sign -h
+musign-multisig-sign 
+Sign a multisignature object passed via STDIN
 
 USAGE:
-    musign multisig-sign -s <secret>
+    musign multisig-sign [OPTIONS]
 
 FLAGS:
     -h, --help       Prints help information
     -V, --version    Prints version information
 
 OPTIONS:
-    -s <secret>
+    -s <secret>        Private key in hex to sign the multisig object. Alternatively, the key can be
+                       provided via STDIN
 
 ```
 We can now start signing our multisig object:
@@ -260,8 +264,9 @@ If we are passing in the object that already contains some signatures, the signa
 #### multisig-combine
 
 ```bash
-$ musign-multisig-combine 
-Combine signatures of individually signed multisignature objects. Pass them over stdin
+$ musign-multisig-combine -h
+musign-multisig-combine 
+Combine signatures of individually signed multisignature objects. Pass them via STDIN
 
 USAGE:
     musign multisig-combine
@@ -283,7 +288,7 @@ $ cat m_obj_signed1.json m_obj_signed2.json | musign multisig-combine > m_obj_si
 
 ```bash
 musign-multisig-verify 
-Verify a multisignature object passed over by stdin
+Verify a multisignature object passed via STDIN. Returns true or false
 
 USAGE:
     musign multisig-verify
@@ -349,7 +354,8 @@ $ { cat tmp.json && keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-k
 ```bash
 $ musign -h
 musign-cli 
-Generate secp256k1 keys, sign and verify messages with ECDSA and Schnorr
+Generate secp256k1 keys, sign and verify messages with ECDSA and Schnorr in a single- or
+multisignature setup
 
 USAGE:
     musign <SUBCOMMAND>
@@ -364,13 +370,15 @@ SUBCOMMANDS:
     help                      Prints this message or the help of the given subcommand(s)
     sign                      Sign a message. Signature is returned
     verify                    Verify a signature for a given message. True is returned for a
-                              valid signature otherwise False
-    multisig-setup            Set up a multisig: quorum and all the participants (pubkeys)
+                              valid signature otherwise false
+    multisig-setup            Set up a multisig: quorum and all the participants (pubkeys in
+                              hex)
     multisig-construct-msg    Add message to a multisig setup. Returns an unsigned
                               multisignature object
-    multisig-sign             Sign a multisignature object passed over via stdin
+    multisig-sign             Sign a multisignature object passed via STDIN
     multisig-combine          Combine signatures of individually signed multisignature objects.
-                              Pass them over stdin
-    multisig-verify           Verify a multisignature object passed over by stdin
+                              Pass them via STDIN
+    multisig-verify           Verify a multisignature object passed via STDIN. Returns true or
+                              false
 
 ```
