@@ -326,6 +326,18 @@ keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-pub-ec-key --full-addres
 true
 ```
 
+#### Multisignatures
+
+Similarily, we can pipe `keytool` keys into musign subcommands associated with multisignatures.
+
+```bash
+$ { keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/0 && keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/0; } | musign multisig-setup 2
+
+{"sig_type":"ECDSA","threshold":2,"pubkeys":["0fb01cbd70be8fcfaf11e64681d99a5d8490b8672ae587861709b21c5b6f9113","0fb01cbd70be8fcfaf11e64681d99a5d8490b8672ae587861709b21c5b6f9113"]}
+```
+
+
+
 ### Help
 
 ```bash

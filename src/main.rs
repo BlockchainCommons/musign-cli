@@ -141,7 +141,7 @@ fn multisig_verify(obj: CmdMultisigConstruct) -> bool {
     let mut msg = serde_json::to_string(&msg).unwrap();
     msg.retain(|c| !c.is_whitespace());
 
-    let pubkeys = obj.setup.pubkeys;
+    let pubkeys = obj.setup.pubkeys.unwrap();
     let sigs = obj.signatures.unwrap();
     let pubkeys: HashSet<String> = pubkeys.into_iter().collect();
     let sigs: HashSet<String> = sigs.into_iter().collect();
@@ -206,8 +206,8 @@ pub struct CmdMultisigSetup {
     #[clap(required = true)]
     threshold: u8,
     /// List of public keys to participate in a multisig
-    #[clap(short, required = true)]
-    pubkeys: Vec<String>,
+    #[clap(short)]
+    pubkeys: Option<Vec<String>>,
 }
 
 #[derive(Debug, Clap, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
@@ -494,7 +494,17 @@ fn main() {
             };
         }
 
-        Opt::MultisigSetup(cmd) => {
+        Opt::MultisigSetup(mut cmd) => {
+            if cmd.pubkeys == None {
+                let mut v: Vec<String> = Vec::new();
+                let stdin = stdin();
+                for line in stdin.lock().lines() {
+                    let s = line.unwrap();
+                    v.push(s);
+                }
+                cmd.pubkeys = Some(v);
+            };
+
             match cmd.sig_type {
                 SigType::ECDSA => {
                     println!("{}", serde_json::to_string(&cmd).unwrap());
