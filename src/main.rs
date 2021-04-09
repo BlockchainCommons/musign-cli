@@ -58,51 +58,55 @@ fn signmessage(seckey: SecretKey, message: String) -> Result<(String, String), M
     Ok((signature.to_base64(), p2pkh.to_string()))
 }
 
-fn verifymessage(signature: String, p2pkh_address: String, message: String) -> bool {
+fn verifymessage(
+    signature: String,
+    p2pkh_address: String,
+    message: String,
+) -> Result<bool, MusignError> {
     let secp = secp256k1::Secp256k1::new();
-    let signature = MessageSignature::from_str(&signature).unwrap();
+    let signature = MessageSignature::from_str(&signature)?;
     let msg_hash = signed_msg_hash(&message);
 
-    let addr = Address::from_str(&p2pkh_address).unwrap();
+    let addr = Address::from_str(&p2pkh_address)?;
 
-    signature
-        .is_signed_by_address(&secp, &addr, msg_hash)
-        .unwrap()
+    Ok(signature.is_signed_by_address(&secp, &addr, msg_hash)?)
 }
 
-fn generate_schnorr_keypair(seed: String) -> (schnorrsig::KeyPair, schnorrsig::PublicKey) {
+fn generate_schnorr_keypair(
+    seed: String,
+) -> Result<(schnorrsig::KeyPair, schnorrsig::PublicKey), MusignError> {
     let s = Secp256k1::new();
 
-    let keypair = schnorrsig::KeyPair::from_seckey_str(&s, &seed).unwrap();
+    let keypair = schnorrsig::KeyPair::from_seckey_str(&s, &seed)?;
 
     let pubkey = schnorrsig::PublicKey::from_keypair(&s, &keypair);
-    (keypair, pubkey)
+    Ok((keypair, pubkey))
 }
 
-fn sign_schnorr(seckey: String, msg: String) -> schnorrsig::Signature {
+fn sign_schnorr(seckey: String, msg: String) -> Result<schnorrsig::Signature, MusignError> {
     let s = Secp256k1::new();
-    let keypair = schnorrsig::KeyPair::from_seckey_str(&s, &seckey).unwrap();
+    let keypair = schnorrsig::KeyPair::from_seckey_str(&s, &seckey)?;
     let pubkey = schnorrsig::PublicKey::from_keypair(&s, &keypair);
 
     let message = Message::from_hashed_data::<sha256::Hash>(msg.as_bytes());
     let sig = s.schnorrsig_sign_no_aux_rand(&message, &keypair);
     assert!(s.schnorrsig_verify(&sig, &message, &pubkey).is_ok());
-    sig
+    Ok(sig)
 }
 
-fn verify_schnorr(signature: String, msg: String, pubkey: String) -> bool {
+fn verify_schnorr(signature: String, msg: String, pubkey: String) -> Result<bool, MusignError> {
     let s = Secp256k1::new();
-    let pubkey = schnorrsig::PublicKey::from_str(&pubkey).unwrap();
+    let pubkey = schnorrsig::PublicKey::from_str(&pubkey)?;
     let sig = schnorrsig::Signature::from_str(&signature).expect("Signature format incorrect");
     let message = Message::from_hashed_data::<sha256::Hash>(msg.as_bytes());
-    s.schnorrsig_verify(&sig, &message, &pubkey).is_ok()
+    Ok(s.schnorrsig_verify(&sig, &message, &pubkey).is_ok())
 }
 
-fn generate_keypair(seed: Vec<u8>) -> (SecretKey, PublicKey) {
+fn generate_keypair(seed: Vec<u8>) -> Result<(SecretKey, PublicKey), MusignError> {
     let secp = Secp256k1::new();
-    let secret_key = SecretKey::from_slice(&seed).expect("seed error");
+    let secret_key = SecretKey::from_slice(&seed)?;
     let public_key = PublicKey::from_secret_key(&secp, &secret_key);
-    (secret_key, public_key)
+    Ok((secret_key, public_key))
 }
 
 fn sign(seckey: String, msg: String) -> Result<Signature, MusignError> {
@@ -117,50 +121,52 @@ fn sign(seckey: String, msg: String) -> Result<Signature, MusignError> {
     Ok(sig)
 }
 
-fn verify(signature: String, msg: String, pubkey: String) -> bool {
-    let pubkey = PublicKey::from_str(&pubkey).unwrap();
+fn verify(signature: String, msg: String, pubkey: String) -> Result<bool, MusignError> {
+    let pubkey = PublicKey::from_str(&pubkey)?;
     let sig = Signature::from_str(&signature).expect("Signature format incorrect");
 
     let message = Message::from_hashed_data::<sha256::Hash>(msg.as_bytes());
     let secp = Secp256k1::new();
 
-    secp.verify(&message, &sig, &pubkey).is_ok()
+    Ok(secp.verify(&message, &sig, &pubkey).is_ok())
 }
 
 // ecdsa multisig
-fn multisig_verify(obj: CmdMultisigConstruct) -> bool {
+fn multisig_verify(obj: CmdMultisigConstruct) -> Result<bool, MusignError> {
     let mut msg = obj.clone();
     msg.signatures = None;
     // remove signatures and whitespaces!
-    let mut msg = serde_json::to_string(&msg).unwrap();
+    let mut msg = serde_json::to_string(&msg)?;
     msg.retain(|c| !c.is_whitespace());
 
-    let pubkeys = obj.setup.pubkeys.unwrap();
-    let sigs = obj.signatures.unwrap();
+    let pubkeys = obj.setup.pubkeys.unwrap(); // safe
+    let sigs = obj.signatures.unwrap(); // safe
     let pubkeys: HashSet<String> = pubkeys.into_iter().collect();
     let sigs: HashSet<String> = sigs.into_iter().collect();
 
     if sigs.len() < obj.setup.threshold.into() || pubkeys.len() < obj.setup.threshold.into() {
-        return false;
+        return Ok(false);
     }
 
     let mut cnt = 0;
     for sig in sigs.iter() {
         for pubkey in &pubkeys {
-            if verify(sig.to_string(), msg.clone(), pubkey.to_string()) == true {
+            if verify(sig.to_string(), msg.clone(), pubkey.to_string())? == true {
                 cnt = cnt + 1;
             }
         }
     }
 
     if cnt >= obj.setup.threshold.into() {
-        return true;
+        return Ok(true);
     }
-    false
+    Ok(false)
 }
 
 // ecdsa multisig
-fn multisig_combine<'a>(obj: &'a mut Vec<CmdMultisigConstruct>) -> &'a CmdMultisigConstruct {
+fn multisig_combine<'a>(
+    obj: &'a mut Vec<CmdMultisigConstruct>,
+) -> Result<&'a CmdMultisigConstruct, MusignError> {
     // Convert vector to hashset and remove signatures
     let objs: HashSet<CmdMultisigConstruct> = obj
         .clone()
@@ -172,13 +178,18 @@ fn multisig_combine<'a>(obj: &'a mut Vec<CmdMultisigConstruct>) -> &'a CmdMultis
         .collect();
 
     // All the object without signatures must be the same. Therefore only one element in hashset
-    assert!(objs.len() == 1); // TODO error handling
+    assert!(objs.len() == 1);
 
     // collect all the signatures
     let mut v: HashSet<String> = HashSet::new();
     for o in obj.clone() {
         if o.signatures.is_some() {
-            let p = o.signatures.unwrap();
+            let p = o.signatures.ok_or_else(|| {
+                MusignError::new(
+                    "conversion".to_string(),
+                    "collecting sigantures".to_string(),
+                )
+            })?;
             v.extend(p.into_iter().clone())
         }
     }
@@ -187,7 +198,7 @@ fn multisig_combine<'a>(obj: &'a mut Vec<CmdMultisigConstruct>) -> &'a CmdMultis
 
     let v_unique: Vec<String> = v.into_iter().collect();
     out.signatures = Some(v_unique);
-    out
+    Ok(out)
 }
 
 #[derive(Debug, Clap, Serialize, Deserialize, Clone, PartialEq, Eq, Hash)]
@@ -320,7 +331,7 @@ fn main() -> Result<(), MusignError> {
     match matches {
         Opt::Generate { secret, sig_type } => {
             let secret = if secret != None {
-                let s = secret.clone().expect("error private key string");
+                let s = secret.clone().unwrap(); // safe
                 s
             } else {
                 let mut privkey = String::new();
@@ -330,25 +341,27 @@ fn main() -> Result<(), MusignError> {
                 privkey
             };
 
-            let seed_bytes = hex::decode(secret.clone()).expect("Decoding seed failed");
+            let seed_bytes = hex::decode(secret.clone()).map_err(|_| {
+                MusignError::new("conversion".to_string(), "cannot decode secret".to_string())
+            })?;
 
             match sig_type {
                 SigType::ECDSA => {
-                    let (_, pubkey) = generate_keypair(seed_bytes);
+                    let (_, pubkey) = generate_keypair(seed_bytes)?;
                     let ret = json!({
                         "pubkey": pubkey.to_string(),
                     });
                     println!("{}", ret.to_string());
                 }
                 SigType::Schnorr => {
-                    let (_, pubkey) = generate_schnorr_keypair(secret);
+                    let (_, pubkey) = generate_schnorr_keypair(secret)?;
                     let ret = json!({
                         "pubkey": pubkey.to_string(),
                     });
                     println!("{}", ret.to_string());
                 }
                 SigType::BtcLegacy => {
-                    let (_, pubkey) = generate_keypair(seed_bytes);
+                    let (_, pubkey) = generate_keypair(seed_bytes)?;
                     let pubkey = Public_key {
                         compressed: true,
                         key: pubkey,
@@ -363,7 +376,7 @@ fn main() -> Result<(), MusignError> {
         }
         Opt::Sign(cmd) => {
             let sec = if cmd.secret != None {
-                let s = cmd.secret.clone().expect("error private key string");
+                let s = cmd.secret.clone().expect("error private key string"); // safe
                 s
             } else {
                 let mut privkey = String::new();
@@ -379,7 +392,7 @@ fn main() -> Result<(), MusignError> {
 
                     // TODO: make a method inside a struct
                     let seed_bytes = hex::decode(sec).expect("Decoding seed failed");
-                    let (_, pubkey) = generate_keypair(seed_bytes);
+                    let (_, pubkey) = generate_keypair(seed_bytes)?;
 
                     let mut sig = Sig {
                         sig_type: cmd.sig_type,
@@ -399,14 +412,19 @@ fn main() -> Result<(), MusignError> {
                     sig
                 }
                 SigType::Schnorr => {
-                    let sig = sign_schnorr(sec.clone(), cmd.msg.clone());
+                    let sig = sign_schnorr(sec.clone(), cmd.msg.clone())?;
                     // TODO: make a method inside a struct
-                    let (_, pubkey) = generate_schnorr_keypair(sec);
+                    let (_, pubkey) = generate_schnorr_keypair(sec)?;
 
                     let mut sig = Sig {
                         sig_type: cmd.sig_type,
                         signature: Some(sig.to_string()),
-                        sig: Some(hex::decode(sig.to_string()).unwrap()), // TODO
+                        sig: Some(hex::decode(sig.to_string()).map_err(|_| {
+                            MusignError::new(
+                                "conversion".to_string(),
+                                "cannot decode signature into hex".to_string(),
+                            )
+                        })?),
                         message: cmd.msg,
                         pubkey: Some(pubkey.to_string()),
                         address: None,
@@ -422,7 +440,7 @@ fn main() -> Result<(), MusignError> {
                 }
 
                 SigType::BtcLegacy => {
-                    let seckey = SecretKey::from_str(&sec).expect("Private key error");
+                    let seckey = SecretKey::from_str(&sec)?;
                     let (sig, addr) = signmessage(seckey, cmd.msg.clone())?;
                     Sig {
                         sig_type: cmd.sig_type,
@@ -436,20 +454,20 @@ fn main() -> Result<(), MusignError> {
             };
 
             if cmd.format == "json" {
-                println!("{}", serde_json::to_string(&out).unwrap());
+                println!("{}", serde_json::to_string(&out)?);
             } else {
-                let cbor = serde_cbor::to_vec(&out);
-                let cbor = hex::encode(cbor.unwrap());
+                let cbor = serde_cbor::to_vec(&out)?;
+                let cbor = hex::encode(cbor);
                 println!("{}", cbor);
             }
         }
 
         Opt::Verify(cmd) => {
             let pubkey = if cmd.pubkey != None {
-                let s = cmd.pubkey.clone().expect("error private key string");
+                let s = cmd.pubkey.clone().expect("error private key string"); // safe
                 s
             } else if cmd.address != None {
-                cmd.address.unwrap()
+                cmd.address.unwrap() // safe
             } else {
                 let mut pubkey = String::new();
                 let ret = stdin().read_to_string(&mut pubkey);
@@ -460,15 +478,15 @@ fn main() -> Result<(), MusignError> {
 
             match cmd.sig_type {
                 SigType::ECDSA => {
-                    let res = verify(cmd.signature, cmd.message, pubkey);
+                    let res = verify(cmd.signature, cmd.message, pubkey)?;
                     println!("{}", res);
                 }
                 SigType::Schnorr => {
-                    let res = verify_schnorr(cmd.signature, cmd.message, pubkey);
+                    let res = verify_schnorr(cmd.signature, cmd.message, pubkey)?;
                     println!("{}", res);
                 }
                 SigType::BtcLegacy => {
-                    let ret = verifymessage(cmd.signature, pubkey, cmd.message);
+                    let ret = verifymessage(cmd.signature, pubkey, cmd.message)?;
                     println!("{}", ret);
                 }
             };
@@ -479,7 +497,7 @@ fn main() -> Result<(), MusignError> {
                 let mut v: Vec<String> = Vec::new();
                 let stdin = stdin();
                 for line in stdin.lock().lines() {
-                    let s = line.unwrap();
+                    let s = line?;
                     v.push(s);
                 }
                 cmd.pubkeys = Some(v);
@@ -487,7 +505,7 @@ fn main() -> Result<(), MusignError> {
 
             match cmd.sig_type {
                 SigType::ECDSA => {
-                    println!("{}", serde_json::to_string(&cmd).unwrap());
+                    println!("{}", serde_json::to_string(&cmd)?);
                 }
                 SigType::Schnorr => {}
                 SigType::BtcLegacy => {}
@@ -495,14 +513,14 @@ fn main() -> Result<(), MusignError> {
         }
 
         Opt::MultisigConstruct(cmd) => {
-            println!("{}", serde_json::to_string(&cmd).unwrap());
+            println!("{}", serde_json::to_string(&cmd)?);
         }
 
         Opt::MultisigSign(mut cmd) => {
             let mut v: Vec<String> = Vec::new();
             let stdin = stdin();
             for line in stdin.lock().lines() {
-                let s = line.unwrap();
+                let s = line?;
                 v.push(s);
             }
 
@@ -512,33 +530,33 @@ fn main() -> Result<(), MusignError> {
                 cmd.secret = Some(v[1].clone());
             }
 
-            let mut js: CmdMultisigConstruct = serde_json::from_str(&v[0]).unwrap();
+            let mut js: CmdMultisigConstruct = serde_json::from_str(&v[0])?;
             // remove signatures before signing
             let mut sigs = js.signatures;
             js.signatures = None;
 
             // remove whitespaces
-            let mut j = serde_json::to_string(&js).unwrap();
+            let mut j = serde_json::to_string(&js)?;
             j.retain(|c| !c.is_whitespace());
 
-            let sig = sign(cmd.secret.unwrap().clone(), j.clone());
+            let sig = sign(cmd.secret.unwrap().clone(), j.clone())?; // safe
 
             match sigs {
-                Some(ref mut v) => v.push(sig?.to_string()),
+                Some(ref mut v) => v.push(sig.to_string()),
                 None => {
-                    sigs = Some(vec![sig?.to_string()]);
+                    sigs = Some(vec![sig.to_string()]);
                 }
             };
 
             js.signatures = sigs;
 
-            println!("{}", serde_json::to_string(&js).unwrap());
+            println!("{}", serde_json::to_string(&js)?);
         }
 
         Opt::MultisigVerify => {
             let multisig_reader = BufReader::new(stdin());
-            let obj: CmdMultisigConstruct = serde_json::from_reader(multisig_reader).unwrap();
-            let ret = multisig_verify(obj);
+            let obj: CmdMultisigConstruct = serde_json::from_reader(multisig_reader)?;
+            let ret = multisig_verify(obj)?;
             println!("{}", ret);
         }
 
@@ -546,12 +564,12 @@ fn main() -> Result<(), MusignError> {
             let mut v: Vec<CmdMultisigConstruct> = Vec::new();
             let stdin = stdin();
             for line in stdin.lock().lines() {
-                let s = line.unwrap();
-                let p: CmdMultisigConstruct = serde_json::from_str(&s).unwrap();
+                let s = line?;
+                let p: CmdMultisigConstruct = serde_json::from_str(&s)?;
                 v.push(p);
             }
-            let ret = multisig_combine(&mut v);
-            println!("{}", serde_json::to_string(&ret).unwrap());
+            let ret = multisig_combine(&mut v)?;
+            println!("{}", serde_json::to_string(&ret)?);
         }
     };
     Ok(())
