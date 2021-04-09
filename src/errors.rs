@@ -1,5 +1,3 @@
-use std::fmt;
-
 extern crate bitcoin;
 extern crate secp256k1;
 extern crate serde_json;
@@ -70,12 +68,6 @@ impl From<bitcoin::util::address::Error> for MusignError {
             kind: String::from("bitcoin"),
             message: error.to_string(),
         }
-    }
-}
-
-impl fmt::Display for MusignError {
-    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.kind)
     }
 }
 
