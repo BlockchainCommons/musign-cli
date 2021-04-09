@@ -16,6 +16,8 @@ use bitcoin::util::address::Address;
 use bitcoin::util::key::PublicKey as Public_key;
 use bitcoin::util::misc::{signed_msg_hash, MessageSignature};
 
+mod errors;
+use errors::MusignError;
 use std::io::{stdin, BufReader, Read};
 
 #[derive(Serialize, Deserialize, Debug, Clap, PartialEq, Clone, Eq, Hash)]
@@ -40,20 +42,20 @@ struct Sig {
     address: Option<String>,
 }
 
-fn signmessage(seckey: SecretKey, message: String) -> (String, String) {
+fn signmessage(seckey: SecretKey, message: String) -> Result<(String, String), MusignError> {
     let secp = secp256k1::Secp256k1::new();
     let msg_hash = signed_msg_hash(&message);
-    let msg = secp256k1::Message::from_slice(&msg_hash).unwrap();
+    let msg = secp256k1::Message::from_slice(&msg_hash)?;
     let secp_sig = secp.sign_recoverable(&msg, &seckey);
     let signature = MessageSignature {
         signature: secp_sig,
         compressed: true,
     };
 
-    let pubkey = signature.recover_pubkey(&secp, msg_hash).unwrap();
+    let pubkey = signature.recover_pubkey(&secp, msg_hash)?;
     let p2pkh = Address::p2pkh(&pubkey, bitcoin::Network::Bitcoin);
 
-    (signature.to_base64(), p2pkh.to_string())
+    Ok((signature.to_base64(), p2pkh.to_string()))
 }
 
 fn verifymessage(signature: String, p2pkh_address: String, message: String) -> bool {
@@ -103,8 +105,8 @@ fn generate_keypair(seed: Vec<u8>) -> (SecretKey, PublicKey) {
     (secret_key, public_key)
 }
 
-fn sign(seckey: String, msg: String) -> Signature {
-    let seckey = SecretKey::from_str(&seckey).expect("Private key error");
+fn sign(seckey: String, msg: String) -> Result<Signature, MusignError> {
+    let seckey = SecretKey::from_str(&seckey)?;
 
     let message = Message::from_hashed_data::<sha256::Hash>(msg.as_bytes());
     let secp = Secp256k1::new();
@@ -112,7 +114,7 @@ fn sign(seckey: String, msg: String) -> Signature {
     let public_key = PublicKey::from_secret_key(&secp, &seckey);
     assert!(secp.verify(&message, &sig, &public_key).is_ok());
 
-    sig
+    Ok(sig)
 }
 
 fn verify(signature: String, msg: String, pubkey: String) -> bool {
@@ -310,7 +312,7 @@ enum Opt {
     MultisigVerify,
 }
 
-fn main() {
+fn main() -> Result<(), MusignError> {
     let matches = Opt::parse();
 
     //println!("DEBUG: {:?}\n", matches); // TODO: enclose under --verbose
@@ -373,7 +375,7 @@ fn main() {
 
             let out = match cmd.sig_type {
                 SigType::ECDSA => {
-                    let sig = sign(sec.clone(), cmd.msg.clone());
+                    let sig = sign(sec.clone(), cmd.msg.clone())?;
 
                     // TODO: make a method inside a struct
                     let seed_bytes = hex::decode(sec).expect("Decoding seed failed");
@@ -421,7 +423,7 @@ fn main() {
 
                 SigType::BtcLegacy => {
                     let seckey = SecretKey::from_str(&sec).expect("Private key error");
-                    let (sig, addr) = signmessage(seckey, cmd.msg.clone());
+                    let (sig, addr) = signmessage(seckey, cmd.msg.clone())?;
                     Sig {
                         sig_type: cmd.sig_type,
                         signature: Some(sig),
@@ -522,9 +524,9 @@ fn main() {
             let sig = sign(cmd.secret.unwrap().clone(), j.clone());
 
             match sigs {
-                Some(ref mut v) => v.push(sig.to_string()),
+                Some(ref mut v) => v.push(sig?.to_string()),
                 None => {
-                    sigs = Some(vec![sig.to_string()]);
+                    sigs = Some(vec![sig?.to_string()]);
                 }
             };
 
@@ -552,4 +554,5 @@ fn main() {
             println!("{}", serde_json::to_string(&ret).unwrap());
         }
     };
+    Ok(())
 }
