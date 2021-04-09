@@ -3,7 +3,6 @@ use std::fmt;
 extern crate bitcoin;
 extern crate secp256k1;
 extern crate serde_json;
-use std::io::Error;
 
 #[derive(Debug)]
 pub struct MusignError {

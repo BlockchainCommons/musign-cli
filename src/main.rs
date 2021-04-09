@@ -151,8 +151,8 @@ fn multisig_verify(obj: CmdMultisigConstruct) -> Result<bool, MusignError> {
     let mut cnt = 0;
     for sig in sigs.iter() {
         for pubkey in &pubkeys {
-            if verify(sig.to_string(), msg.clone(), pubkey.to_string())? == true {
-                cnt = cnt + 1;
+            if verify(sig.to_string(), msg.clone(), pubkey.to_string())? {
+                cnt += 1;
             }
         }
     }
@@ -164,9 +164,9 @@ fn multisig_verify(obj: CmdMultisigConstruct) -> Result<bool, MusignError> {
 }
 
 // ecdsa multisig
-fn multisig_combine<'a>(
-    obj: &'a mut Vec<CmdMultisigConstruct>,
-) -> Result<&'a CmdMultisigConstruct, MusignError> {
+fn multisig_combine(
+    obj: &mut Vec<CmdMultisigConstruct>,
+) -> Result<&CmdMultisigConstruct, MusignError> {
     // Convert vector to hashset and remove signatures
     let objs: HashSet<CmdMultisigConstruct> = obj
         .clone()
@@ -331,8 +331,7 @@ fn main() -> Result<(), MusignError> {
     match matches {
         Opt::Generate { secret, sig_type } => {
             let secret = if secret != None {
-                let s = secret.clone().unwrap(); // safe
-                s
+                secret.unwrap() // safe
             } else {
                 let mut privkey = String::new();
                 let ret = stdin().read_to_string(&mut privkey);
@@ -376,8 +375,7 @@ fn main() -> Result<(), MusignError> {
         }
         Opt::Sign(cmd) => {
             let sec = if cmd.secret != None {
-                let s = cmd.secret.clone().expect("error private key string"); // safe
-                s
+                cmd.secret.clone().expect("error private key string") // safe
             } else {
                 let mut privkey = String::new();
                 let ret = stdin().read_to_string(&mut privkey);
@@ -464,8 +462,7 @@ fn main() -> Result<(), MusignError> {
 
         Opt::Verify(cmd) => {
             let pubkey = if cmd.pubkey != None {
-                let s = cmd.pubkey.clone().expect("error private key string"); // safe
-                s
+                cmd.pubkey.clone().expect("error private key string") // safe
             } else if cmd.address != None {
                 cmd.address.unwrap() // safe
             } else {
@@ -539,7 +536,7 @@ fn main() -> Result<(), MusignError> {
             let mut j = serde_json::to_string(&js)?;
             j.retain(|c| !c.is_whitespace());
 
-            let sig = sign(cmd.secret.unwrap().clone(), j.clone())?; // safe
+            let sig = sign(cmd.secret.unwrap(), j)?; // safe
 
             match sigs {
                 Some(ref mut v) => v.push(sig.to_string()),
