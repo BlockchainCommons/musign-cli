@@ -1,4 +1,5 @@
 extern crate bitcoin;
+extern crate hex;
 extern crate secp256k1;
 extern crate serde_json;
 
@@ -64,6 +65,15 @@ impl From<bitcoin::util::misc::MessageSignatureError> for MusignError {
 
 impl From<bitcoin::util::address::Error> for MusignError {
     fn from(error: bitcoin::util::address::Error) -> Self {
+        MusignError {
+            kind: String::from("bitcoin"),
+            message: error.to_string(),
+        }
+    }
+}
+
+impl From<hex::FromHexError> for MusignError {
+    fn from(error: hex::FromHexError) -> Self {
         MusignError {
             kind: String::from("bitcoin"),
             message: error.to_string(),

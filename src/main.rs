@@ -21,17 +21,17 @@ use errors::MusignError;
 use std::io::{stdin, BufReader, Read};
 
 pub trait Compact {
-    fn to_compact(&self) -> String;
-    fn from_compact(&self, sig: Vec<u8>) -> Signature;
+    fn to_cmpact(&self) -> String;
+    fn from_cmpact(sig: Vec<u8>) -> Signature;
 }
 
 impl Compact for Signature {
-    fn to_compact(&self) -> String {
+    fn to_cmpact(&self) -> String {
         let sig = self.serialize_compact().to_vec();
         hex::encode(sig)
     }
-    fn from_compact(&self, sig: Vec<u8>) -> Signature {
-        let s = Signature::from_compact(&sig).unwrap();
+    fn from_cmpact(sig: Vec<u8>) -> Signature {
+        let s = Signature::from_compact(&sig).unwrap(); // TODO
         s
     }
 }
@@ -139,7 +139,8 @@ fn sign(seckey: String, msg: String) -> Result<Signature, MusignError> {
 
 fn verify(signature: String, msg: String, pubkey: String) -> Result<bool, MusignError> {
     let pubkey = PublicKey::from_str(&pubkey)?;
-    let sig = Signature::from_str(&signature).expect("Signature format incorrect");
+    let sig = hex::decode(signature)?;
+    let sig = Signature::from_cmpact(sig);
 
     let message = Message::from_hashed_data::<sha256::Hash>(msg.as_bytes());
     let secp = Secp256k1::new();
@@ -410,7 +411,7 @@ fn main() -> Result<(), MusignError> {
 
                     let mut sig = Sig {
                         sig_type: cmd.sig_type,
-                        signature: Some(sig.to_string()),
+                        signature: Some(sig.to_cmpact()),
                         sig: Some(sig.serialize_compact().to_vec()),
                         message: cmd.msg,
                         pubkey: Some(pubkey.to_string()),
@@ -555,9 +556,9 @@ fn main() -> Result<(), MusignError> {
             let sig = sign(cmd.secret.unwrap(), j)?; // safe
 
             match sigs {
-                Some(ref mut v) => v.push(sig.to_string()),
+                Some(ref mut v) => v.push(sig.to_cmpact()),
                 None => {
-                    sigs = Some(vec![sig.to_string()]);
+                    sigs = Some(vec![sig.to_cmpact()]);
                 }
             };
 
