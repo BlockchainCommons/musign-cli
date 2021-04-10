@@ -76,7 +76,7 @@ Signing a message which returns an `ECDSA` signature in JSON format:
 ```bash
 $ musign sign "Hello world!" -s 7694c743a0159ebfb79a65aae8970fcc5be5e9db8efa1ebf70218ae00bb1f29b
 
-{"sig_type":"ECDSA","signature":"3044022012341336cb664828bcd15de1bcf13667ed995d100d1a1b3ece9c0c6691d8940702202cc227014626ea034d2371cdfa0e261f557d3f72d2cfcc2fe0756f5c5c71faba","message":"Hello world!","pubkey":"03dc5a4faf89ad7187933042bcc0fd028b3296f82e7a0f17eecceb4f787ae33f59"}
+{"sig_type":"ECDSA","signature":"12341336cb664828bcd15de1bcf13667ed995d100d1a1b3ece9c0c6691d894072cc227014626ea034d2371cdfa0e261f557d3f72d2cfcc2fe0756f5c5c71faba","message":"Hello world!","pubkey":"03dc5a4faf89ad7187933042bcc0fd028b3296f82e7a0f17eecceb4f787ae33f59"}
 ```
 
 If we choose `CBOR` format:
@@ -135,7 +135,7 @@ OPTIONS:
 Verifying an `ECDSA` signature:
 
 ```bash
-$ musign verify 3044022012341336cb664828bcd15de1bcf13667ed995d100d1a1b3ece9c0c6691d8940702202cc227014626ea034d2371cdfa0e261f557d3f72d2cfcc2fe0756f5c5c71faba "Hello world!" -p 03dc5a4faf89ad7187933042bcc0fd028b3296f82e7a0f17eecceb4f787ae33f59
+$ musign verify 12341336cb664828bcd15de1bcf13667ed995d100d1a1b3ece9c0c6691d894072cc227014626ea034d2371cdfa0e261f557d3f72d2cfcc2fe0756f5c5c71faba "Hello world!" -p 03dc5a4faf89ad7187933042bcc0fd028b3296f82e7a0f17eecceb4f787ae33f59
 
 true
 ```
@@ -254,12 +254,14 @@ $ musign multisig-sign -s aadd32f8761625f105c39a39f19370b3521d845a12456d60ce44de
 
 ```bash
 echo $(<m_obj_signed1.json)
-{"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]},"signatures":["3045022100b762298fe57c79493630077f05b708b9e57498b0f6ffb950770a96144fe36f29022055579bf40db6c32355aaf4eedd16713f3fe4d232714397b2fcc0d67953037969"]}
+{"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]},"signatures":["b762298fe57c79493630077f05b708b9e57498b0f6ffb950770a96144fe36f2955579bf40db6c32355aaf4eedd16713f3fe4d232714397b2fcc0d67953037969"]}
 ```
 
 The JSON object is signed by first removing all the whitespaces. The order of JSON properties is preserved.
 
 If we are passing in the object that already contains some signatures, the signatures are also removed before signing.
+
+Note: only ECDSA signing in compact format is supported
 
 #### multisig-combine
 
@@ -310,7 +312,7 @@ This is our final object:
 
 ```bash
 echo $(<m_obj_signed_combined.json)
-{"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]},"signatures":["3045022100c71a9ae764c5f457c7d9ff0e7e11004e3c328492ab7894972f9e14403386b1320220267bb019a8d86a92f4dfefce26a3001d8c1995a284e0bb664573b9e3ada7b36c","3045022100b762298fe57c79493630077f05b708b9e57498b0f6ffb950770a96144fe36f29022055579bf40db6c32355aaf4eedd16713f3fe4d232714397b2fcc0d67953037969"]}
+{"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]},"signatures":["c71a9ae764c5f457c7d9ff0e7e11004e3c328492ab7894972f9e14403386b132267bb019a8d86a92f4dfefce26a3001d8c1995a284e0bb664573b9e3ada7b36c","b762298fe57c79493630077f05b708b9e57498b0f6ffb950770a96144fe36f2955579bf40db6c32355aaf4eedd16713f3fe4d232714397b2fcc0d67953037969"]}
 ```
 
 ### Using Musign with Keytool
@@ -322,15 +324,17 @@ We can pipe a hex private or a public key generated with [keytool](https://githu
 Let's sign a simple message with a private key derived from a `HD key` with a derivation path of `m/99h/1h/2h/2/0`
 
 ```bash
-$ keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/2/0 | musign sign "Hello world!"
+$ keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/2/0 | musign sign "Hello world!" > m_object.json
 
-{"sig_type":"ECDSA","signature":"3045022100a2aaa2d2d0b9a4cafa2af352c1344a762d795a8c3eddd201f5ade6c0a907e1150220418220301b1e8f37b88e8f5d8e19399c8e05ac14e2ef0c2915cc5d537de040c3","message":"Hello world!","pubkey":"038e4c0a6e918071b1e1b344ca1a2d72e2ba6147af70a222461e34b5c080e7a726"}
+
+# the content of m_object.json:
+{"sig_type":"ECDSA","signature":"a2aaa2d2d0b9a4cafa2af352c1344a762d795a8c3eddd201f5ade6c0a907e115418220301b1e8f37b88e8f5d8e19399c8e05ac14e2ef0c2915cc5d537de040c3","message":"Hello world!","pubkey":"038e4c0a6e918071b1e1b344ca1a2d72e2ba6147af70a222461e34b5c080e7a726"}
 ```
 
 Let's verify the signature with the public key derived form the `HD key` in `keytool`:
 
 ```bash
-keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-pub-ec-key --full-address-derivation-path m/99h/1h/2h/2/0 | musign verify "$(cat object.json | jq -r '.signature')" "$(cat object.json | jq -r '.message')"
+keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-pub-ec-key --full-address-derivation-path m/99h/1h/2h/2/0 | musign verify "$(cat m_object.json | jq -r '.signature')" "$(cat m_object.json | jq -r '.message')"
 
 true
 ```
@@ -358,17 +362,18 @@ true
 Similarily, we can pipe `keytool` keys in hex into musign subcommands associated with multisignatures.
 
 ```bash
-$ { keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/0 && keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/1; } | musign multisig-setup 2
+$ { keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/0 && keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/1; } | musign multisig-setup 2 > m_tmp.json
 
+# m_tmp.json:
 {"sig_type":"ECDSA","threshold":2,"pubkeys":["0fb01cbd70be8fcfaf11e64681d99a5d8490b8672ae587861709b21c5b6f9113","db20fa1bd20a2310d09f16e279743a2edf400ee9804cd62b86fde571a31fffe0"]}
 ```
 
 When signing a multisig object we have to pipe the object itself and the private key:
 
 ```bash
-$ { cat tmp.json && keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/2/0;} | musign multisig-sign
+$ { cat m_obj.json && keytool --seed 581fbdbf6b3eeababae7e7b51e3aabea address-ec-key --full-address-derivation-path m/99h/1h/2h/2/0;} | musign multisig-sign
 
-{"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]},"signatures":["304402205f18db844afe9ca5f61b4da47a422d1d34c2d0bbb590d413757646a1f32ac10d0220706134b6f8f33b0ebdafc5afdd3ddecc45103cab9554735f121cfe582df1b788"]}
+{"msg":"Hello world!","setup":{"sig_type":"ECDSA","threshold":2,"pubkeys":["03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1","026586cae2ee70f6f046f63ce2e7e3b479099c61753cf7d913f2eab2e78df5a435","0350f1f0017a468c993b046442438e5340b6675376663b7f653fd03f667488c60d"]},"signatures":["5f18db844afe9ca5f61b4da47a422d1d34c2d0bbb590d413757646a1f32ac10d706134b6f8f33b0ebdafc5afdd3ddecc45103cab9554735f121cfe582df1b788"]}
 ```
 
 ### Help
