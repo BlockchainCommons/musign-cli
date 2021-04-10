@@ -28,6 +28,9 @@ A CLI tool for signing and verifying messages with `ECDSA` and `Schnorr` using [
 
 Unless otherwise noted (either in this [/README.md](./README.md) or in the file's header comments) the contents of this repository are Copyright © 2020 by Blockchain Commons, LLC, and are [licensed](./LICENSE) under the [spdx:BSD-2-Clause Plus Patent License](https://spdx.org/licenses/BSD-2-Clause-Patent.html).
 
+* some test vectors were collected from [noble-secp256k1](https://github.com/paulmillr/noble-secp256k1) by [Paul Miller](https://github.com/paulmillr)
+licensed under [MIT](https://github.com/paulmillr/noble-secp256k1/blob/master/LICENSE)
+
 ### Libraries
 
 This project uses libraries listed [here](Cargo.toml).

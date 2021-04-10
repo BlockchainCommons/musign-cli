@@ -74,6 +74,59 @@ fn sign_verify_ecdsa() -> Result<(), Box<dyn std::error::Error>> {
         .success()
         .stdout(predicate::str::contains("false"));
 
+    // source: https://github.com/paulmillr/noble-secp256k1/blob/master/test/vectors/ecdsa.json
+    // test vector 1:
+    let privkey = "0000000000000000000000000000000000000000000000000000000000000001";
+    let msg_data = "Everything should be made as simple as possible, but not simpler.";
+    let sig = "33a69cd2065432a30f3d1ce4eb0d59b8ab58c74f27c41a7fdb5696ad4e6108c96f807982866f785d3f6418d24163ddae117b7db4d5fdf0071de069fa54342262";
+    let mut cmd = Command::cargo_bin(BIN)?;
+    cmd.arg("sign").arg(msg_data).arg("-s").arg(privkey);
+    cmd.assert().success().stdout(predicate::str::contains(sig));
+
+    // test vector 2:
+    let privkey = "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364140";
+    let msg_data = "Equations are more important to me, because politics is for the present, but an equation is something for eternity.";
+    let sig = "54c4a33c6423d689378f160a7ff8b61330444abb58fb470f96ea16d99d4a2fed07082304410efa6b2943111b6a4e0aaa7b7db55a07e9861d1fb3cb1f421044a5";
+    let mut cmd = Command::cargo_bin(BIN)?;
+    cmd.arg("sign").arg(msg_data).arg("-s").arg(privkey);
+    cmd.assert().success().stdout(predicate::str::contains(sig));
+
+    // test vector 3:
+    let privkey = "ab51604553e2a35df7e0fd32169a5a3e5dfa1bdf2455667a15aa3eb8696a3d16";
+    let msg_data =
+        "Computer science is no more about computers than astronomy is about telescopes.";
+    let sig = "06a02f42890eabc89401448debc5525b98f3cafe9f800d34179f1108cdcfcaec225c46d5280244429866d50446b4664c19f72a5f25ccad982fc54b9500a03c3e";
+    let mut cmd = Command::cargo_bin(BIN)?;
+    cmd.arg("sign").arg(msg_data).arg("-s").arg(privkey);
+    cmd.assert().success().stdout(predicate::str::contains(sig));
+
+    // test vector 4:
+    let privkey = "fffffffffffffffffffffffffffffffebaaedce6af48a03bbfd25e8cd0364141";
+    let msg_data = "Private key >= G";
+    let mut cmd = Command::cargo_bin(BIN)?;
+    cmd.arg("sign").arg(msg_data).arg("-s").arg(privkey);
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("panicked"));
+
+    // test vector 5:
+    let msg_data = "Bad sequence prefix";
+    let sig = "00000000000000000000000000000000000000000000000000000000000000010000000000000000000000000000000000000000000000000000000000000001";
+    let pubkey = "040000000000000000000000000000000000000000000000000000000000000001";
+    let mut cmd = Command::cargo_bin(BIN)?;
+    cmd.arg("verify")
+        .arg(sig)
+        .arg(msg_data.to_owned() + " ")
+        .arg("-p")
+        .arg(pubkey.to_string());
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("malformed public key"));
+
+    cmd.assert()
+        .failure()
+        .stderr(predicate::str::contains("malformed public key"));
+
     Ok(())
 }
 
