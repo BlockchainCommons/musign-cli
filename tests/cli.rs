@@ -44,7 +44,7 @@ fn sign_verify_ecdsa() -> Result<(), Box<dyn std::error::Error>> {
 
     let privkey = "e6dd32f8761625f105c39a39f19370b3521d845a12456d60ce44debd0a362641";
     let msg_data = "Hello world!";
-    let sig = "3045022100a834a9596c3021524305faa75a83a545780260e059832128d9617f4479876613022036bc08f2aed098d1e598106ab1439d4bcdbed127db73072358a4ca21f3dbd4f2";
+    let sig = "a834a9596c3021524305faa75a83a545780260e059832128d9617f447987661336bc08f2aed098d1e598106ab1439d4bcdbed127db73072358a4ca21f3dbd4f2";
     let pubkey = "03c2805489921b22854b1381e32a1d7c4452a4fd12f6c3f13cab9dc899216a6bd1";
 
     cmd.arg("sign").arg(msg_data).arg("-s").arg(privkey);
