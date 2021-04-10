@@ -20,6 +20,22 @@ mod errors;
 use errors::MusignError;
 use std::io::{stdin, BufReader, Read};
 
+pub trait Compact {
+    fn to_compact(&self) -> String;
+    fn from_compact(&self, sig: Vec<u8>) -> Signature;
+}
+
+impl Compact for Signature {
+    fn to_compact(&self) -> String {
+        let sig = self.serialize_compact().to_vec();
+        hex::encode(sig)
+    }
+    fn from_compact(&self, sig: Vec<u8>) -> Signature {
+        let s = Signature::from_compact(&sig).unwrap();
+        s
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug, Clap, PartialEq, Clone, Eq, Hash)]
 enum SigType {
     ECDSA,

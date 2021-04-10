@@ -4,6 +4,9 @@ use std::process::Command;
 
 const BIN: &str = "musign";
 
+// secp256k1_ecdsa_signature_serialize_der
+// secp256k1_ecdsa_signature_parse_compact
+
 #[test]
 fn help_subcommand() -> Result<(), Box<dyn std::error::Error>> {
     let mut cmd = Command::cargo_bin(BIN)?;
