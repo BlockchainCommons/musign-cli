@@ -1,5 +1,7 @@
 # Blockchain Commons `musign-cli`
 
+![Build](https://github.com/BlockchainCommons/musign-cli/workflows/Build/badge.svg)
+
 ### _by [Gorazd Kovacic](https://www.github.com/gorazdko) and [Christopher Allen](https://www.github.com/ChristopherA)_
 
 A CLI tool for signing and verifying messages with `ECDSA` and `Schnorr` using [libsecp256k1](https://github.com/rust-bitcoin/rust-secp256k1).
