@@ -31,14 +31,13 @@ impl Compact for Signature {
         hex::encode(sig)
     }
     fn from_cmpact(sig: Vec<u8>) -> Signature {
-        let s = Signature::from_compact(&sig).unwrap(); // TODO
-        s
+        Signature::from_compact(&sig).unwrap() // TODO
     }
 }
 
 #[derive(Serialize, Deserialize, Debug, Clap, PartialEq, Clone, Eq, Hash)]
 enum SigType {
-    ECDSA,
+    Ecdsa,
     Schnorr,
     /// mainnet
     BtcLegacy,
@@ -362,7 +361,7 @@ fn main() -> Result<(), MusignError> {
             })?;
 
             match sig_type {
-                SigType::ECDSA => {
+                SigType::Ecdsa => {
                     let (_, pubkey) = generate_keypair(seed_bytes)?;
                     let ret = json!({
                         "pubkey": pubkey.to_string(),
@@ -402,7 +401,7 @@ fn main() -> Result<(), MusignError> {
             };
 
             let out = match cmd.sig_type {
-                SigType::ECDSA => {
+                SigType::Ecdsa => {
                     let sig = sign(sec.clone(), cmd.msg.clone())?;
 
                     // TODO: make a method inside a struct
@@ -491,7 +490,7 @@ fn main() -> Result<(), MusignError> {
             };
 
             match cmd.sig_type {
-                SigType::ECDSA => {
+                SigType::Ecdsa => {
                     let res = verify(cmd.signature, cmd.message, pubkey)?;
                     println!("{}", res);
                 }
@@ -518,7 +517,7 @@ fn main() -> Result<(), MusignError> {
             };
 
             match cmd.sig_type {
-                SigType::ECDSA => {
+                SigType::Ecdsa => {
                     println!("{}", serde_json::to_string(&cmd)?);
                 }
                 SigType::Schnorr => {}
