@@ -13,10 +13,13 @@ A CLI tool for signing and verifying messages with `ECDSA` and `Schnorr` using [
 
 ### Roadmap
 
-* support different input/output formats (e.g. CBOR/URs for signature)
-* legacy Bitcoin signing
-* multisignatures (traditional and musig2)
-* BIP322 support
+- [x] single signatures schnorr
+- [x] single signatures ecdsa
+- [x] legacy Bitcoin signing
+- [x] traditional multisignatures
+- [ ] musig2
+- [ ] BIP322 support
+- [ ] UR support (needs CBOR spec first)
 
 ## Installation Instructions
 
