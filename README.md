@@ -18,7 +18,7 @@ A CLI tool for signing and verifying messages with `ECDSA` and `Schnorr` using [
 - [x] legacy Bitcoin signing
 - [x] traditional multisignatures
 - [ ] json-ld signing
-- [ ] musig2
+- [ ] musig2 (see [Replace MuSig(1) module with MuSig2 #131](https://github.com/ElementsProject/secp256k1-zkp/pull/131)
 - [ ] BIP322 support
 - [ ] UR support (needs CBOR spec first)
 
