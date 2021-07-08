@@ -17,6 +17,7 @@ A CLI tool for signing and verifying messages with `ECDSA` and `Schnorr` using [
 - [x] single signatures ecdsa
 - [x] legacy Bitcoin signing
 - [x] traditional multisignatures
+- [ ] json-ld signing
 - [ ] musig2
 - [ ] BIP322 support
 - [ ] UR support (needs CBOR spec first)
