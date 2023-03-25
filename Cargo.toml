@@ -1,8 +1,14 @@
 [package]
 name = "musign-cli"
 version = "0.1.0"
-authors = ["gorazdko <gorazdko@gmail.com>"]
+authors = ["gorazdko <gorazdko@gmail.com>", "Christopher Allen <ChristopherA@LifeWithAlacrity.com>"]
 edition = "2018"
+license = "BSD-2-Clause-Patent"
+readme = "README.md"
+description = "A CLI tool for signing and verifying messages with `ECDSA` and `Schnorr` using [libsecp256k1](https://github.com/rust-bitcoin/rust-secp256k1)."
+homepage = "https://github.com/BlockchainCommons/sweeptool-cli"
+repository = "git@github.com:BlockchainCommons/musign-cli.git"
+
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -21,5 +27,14 @@ bitcoin = {version="0.26.0", features = ["secp-recovery", "base64"]}
 
 [dev-dependencies]
 assert_cmd = "0.10"
+cargo-deb = "1.42.2"
 predicates = "1"
 tempfile = "3"
+
+[package.metadata.deb]
+license-file = ["LICENSE", "4"]
+section = "utility"
+assets = [
+    ["target/release/musign", "/usr/bin/musign", "755"],
+    ["doc/MANUAL.md", "usr/share/doc/musign-cli/MANUAL.md", "644"],
+]
