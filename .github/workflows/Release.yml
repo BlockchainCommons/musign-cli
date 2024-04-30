@@ -6,29 +6,29 @@ permissions:
 on:
   push:
     tags:
-      - [0-9]+.[0-9]+.[0-9]+
+      - "[0-9]+.[0-9]+.[0-9]+"
 
 jobs:
   create-release:
-      runs-on: macos-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: taiki-e/create-gh-release-action@v1
-          with:
-            # (optional) Path to changelog.
-            # changelog: CHANGELOG.md
-            # (required) GitHub token for creating GitHub Releases.
-            token: ${{ secrets.GITHUB_TOKEN }}
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/create-gh-release-action@v1
+        with:
+          # (optional) Path to changelog.
+          # changelog: CHANGELOG.md
+          # (required) GitHub token for creating GitHub Releases.
+          token: ${{ secrets.GITHUB_TOKEN }}
 
   upload-assets:
-      needs: create-release
-      runs-on: macos-latest
-      steps:
-        - uses: actions/checkout@v4
-        - uses: taiki-e/upload-rust-binary-action@v1
-          with:
-            # (required) Comma-separated list of binary names (non-extension portion of filename) to build and upload.
-            # Note that glob pattern is not supported yet.
-            bin: musign
-            # (required) GitHub token for uploading assets to GitHub Releases.
-            token: ${{ secrets.GITHUB_TOKEN }}
+    needs: create-release
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/upload-rust-binary-action@v1
+        with:
+          # (required) Comma-separated list of binary names (non-extension portion of filename) to build and upload.
+          # Note that glob pattern is not supported yet.
+          bin: musign
+          # (required) GitHub token for uploading assets to GitHub Releases.
+          token: ${{ secrets.GITHUB_TOKEN }}
