@@ -27,7 +27,7 @@ bitcoin = {version="0.26.0", features = ["secp-recovery", "base64"]}
 
 [dev-dependencies]
 assert_cmd = "0.10"
-cargo-deb = "1.42.2"
+cargo-deb = "2.1.1"
 predicates = "1"
 tempfile = "3"
 
