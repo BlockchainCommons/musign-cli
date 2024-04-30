@@ -63,7 +63,7 @@ jobs:
           command: clippy
           args: -- -D warnings
 
-  check:
+  build:
     name: Build (MacOS)
     runs-on: macos-latest
     steps:
